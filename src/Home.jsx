@@ -1,0 +1,587 @@
+import React, { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { create } from 'zustand'
+import {
+  ShoppingBag,
+  Search,
+  Heart,
+  User,
+  ChevronLeft,
+  ChevronRight,
+  Star,
+  Menu,
+  X,
+} from 'lucide-react'
+
+import logo from './assets/logo.png'
+
+// Zustand Store
+const useCartStore = create((set) => ({
+  cart: [],
+  addToCart: (product) =>
+    set((state) => {
+      const existing = state.cart.find((item) => item.id === product.id)
+      if (existing) {
+        return {
+          cart: state.cart.map((item) =>
+            item.id === product.id
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          ),
+        }
+      }
+      return { cart: [...state.cart, { ...product, quantity: 1 }] }
+    }),
+  removeFromCart: (id) =>
+    set((state) => ({
+      cart: state.cart.filter((item) => item.id !== id),
+    })),
+}))
+
+// Mock API
+const fetchProducts = async () => {
+  await new Promise((resolve) => setTimeout(resolve, 500))
+  return [
+    {
+      id: 1,
+      name: 'Silk Saree',
+      price: 4999,
+      category: 'Sarees',
+      rating: 4.8,
+      image: '👗',
+      color: 'bg-gradient-to-br from-pink-200 to-rose-300',
+    },
+    {
+      id: 2,
+      name: 'Banarasi Saree',
+      price: 8999,
+      category: 'Sarees',
+      rating: 4.9,
+      image: '👗',
+      color: 'bg-gradient-to-br from-amber-200 to-orange-300',
+    },
+    {
+      id: 3,
+      name: 'Anarkali Suit',
+      price: 3499,
+      category: 'Suits',
+      rating: 4.7,
+      image: '👗',
+      color: 'bg-gradient-to-br from-purple-200 to-pink-300',
+    },
+    {
+      id: 4,
+      name: 'Lehenga Choli',
+      price: 12999,
+      category: 'Lehengas',
+      rating: 4.9,
+      image: '👗',
+      color: 'bg-gradient-to-br from-red-200 to-pink-300',
+    },
+    {
+      id: 5,
+      name: 'Palazzo Set',
+      price: 2499,
+      category: 'Suits',
+      rating: 4.6,
+      image: '👗',
+      color: 'bg-gradient-to-br from-blue-200 to-cyan-300',
+    },
+    {
+      id: 6,
+      name: 'Kurti Set',
+      price: 1799,
+      category: 'Kurtis',
+      rating: 4.5,
+      image: '👗',
+      color: 'bg-gradient-to-br from-green-200 to-emerald-300',
+    },
+    {
+      id: 7,
+      name: 'Designer Saree',
+      price: 6999,
+      category: 'Sarees',
+      rating: 4.8,
+      image: '👗',
+      color: 'bg-gradient-to-br from-indigo-200 to-purple-300',
+    },
+    {
+      id: 8,
+      name: 'Cotton Kurti',
+      price: 999,
+      category: 'Kurtis',
+      rating: 4.4,
+      image: '👗',
+      color: 'bg-gradient-to-br from-yellow-200 to-amber-300',
+    },
+  ]
+}
+
+// Hero Slider Component
+const HeroSlider = () => {
+  const [current, setCurrent] = useState(0)
+
+  const slides = [
+    {
+      title: 'Festive Collection 2024',
+      subtitle: 'Embrace tradition with our exquisite range',
+      bg: 'bg-gradient-to-r from-rose-400 via-pink-400 to-fuchsia-400',
+      cta: 'Shop Sarees',
+    },
+    {
+      title: 'Bridal Lehengas',
+      subtitle: 'Make your special day unforgettable',
+      bg: 'bg-gradient-to-r from-red-400 via-pink-400 to-rose-400',
+      cta: 'Explore Collection',
+    },
+    {
+      title: 'Summer Essentials',
+      subtitle: 'Comfortable & stylish everyday wear',
+      bg: 'bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-400',
+      cta: 'Shop Kurtis',
+    },
+  ]
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % slides.length)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const nextSlide = () => setCurrent((prev) => (prev + 1) % slides.length)
+  const prevSlide = () =>
+    setCurrent((prev) => (prev - 1 + slides.length) % slides.length)
+
+  return (
+    <div className='relative h-96 md:h-[500px] overflow-hidden'>
+      {slides.map((slide, index) => (
+        <div
+          key={index}
+          className={`absolute inset-0 transition-opacity duration-1000 ${
+            index === current ? 'opacity-100' : 'opacity-0'
+          } ${slide.bg}`}
+        >
+          <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center'>
+            <div className='text-white'>
+              <h2 className='text-4xl md:text-6xl font-bold mb-4 animate-fadeIn'>
+                {slide.title}
+              </h2>
+              <p className='text-xl md:text-2xl mb-8'>{slide.subtitle}</p>
+              <button className='bg-white text-pink-600 px-8 py-3 rounded-full font-semibold hover:bg-pink-50 transition transform hover:scale-105'>
+                {slide.cta}
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      <button
+        onClick={prevSlide}
+        className='absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full transition'
+      >
+        <ChevronLeft size={24} className='text-pink-600' />
+      </button>
+      <button
+        onClick={nextSlide}
+        className='absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full transition'
+      >
+        <ChevronRight size={24} className='text-pink-600' />
+      </button>
+
+      <div className='absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2'>
+        {slides.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrent(index)}
+            className={`w-2 h-2 rounded-full transition ${
+              index === current ? 'bg-white w-8' : 'bg-white/50'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Navbar
+const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false)
+  const cart = useCartStore((state) => state.cart)
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0)
+
+  return (
+    <nav className='bg-white shadow-sm sticky top-0 z-50 border-b border-pink-100'>
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+        <div className='flex justify-between items-center h-16'>
+          <div className='flex items-center'>
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className='md:hidden mr-4'
+            >
+              {isOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+            <a href=''>
+              <img
+                src={logo}
+                alt='Logo'
+                className='h-20 md:h-24 object-contain'
+              />
+            </a>
+          </div>
+
+          <div className='hidden md:flex space-x-8'>
+            <a
+              href='/products'
+              className='text-gray-700 hover:text-pink-600 transition font-medium'
+            >
+              Sarees
+            </a>
+            <a
+              href='#'
+              className='text-gray-700 hover:text-pink-600 transition font-medium'
+            >
+              Lehengas
+            </a>
+            <a
+              href='#'
+              className='text-gray-700 hover:text-pink-600 transition font-medium'
+            >
+              Suits
+            </a>
+            <a
+              href='#'
+              className='text-gray-700 hover:text-pink-600 transition font-medium'
+            >
+              Kurtis
+            </a>
+            <a
+              href='#'
+              className='text-gray-700 hover:text-pink-600 transition font-medium'
+            >
+              Sale
+            </a>
+          </div>
+
+          <div className='flex items-center space-x-4'>
+            <button className='text-gray-700 hover:text-pink-600 transition'>
+              <Search size={20} />
+            </button>
+            <button className='text-gray-700 hover:text-pink-600 transition'>
+              <Heart size={20} />
+            </button>
+            <button className='text-gray-700 hover:text-pink-600 transition'>
+              <User size={20} />
+            </button>
+            <button className='relative text-gray-700 hover:text-pink-600 transition'>
+              <ShoppingBag size={20} />
+              {cartCount > 0 && (
+                <span className='absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center'>
+                  {cartCount}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className='md:hidden border-t border-pink-100'>
+          <div className='px-4 pt-2 pb-3 space-y-1 bg-pink-50/50'>
+            <a
+              href='#'
+              className='block px-3 py-2 text-gray-700 hover:bg-pink-100 rounded font-medium'
+            >
+              Sarees
+            </a>
+            <a
+              href='#'
+              className='block px-3 py-2 text-gray-700 hover:bg-pink-100 rounded font-medium'
+            >
+              Lehengas
+            </a>
+            <a
+              href='#'
+              className='block px-3 py-2 text-gray-700 hover:bg-pink-100 rounded font-medium'
+            >
+              Suits
+            </a>
+            <a
+              href='#'
+              className='block px-3 py-2 text-gray-700 hover:bg-pink-100 rounded font-medium'
+            >
+              Kurtis
+            </a>
+            <a
+              href='#'
+              className='block px-3 py-2 text-pink-600 hover:bg-pink-100 rounded font-medium'
+            >
+              Sale
+            </a>
+          </div>
+        </div>
+      )}
+    </nav>
+  )
+}
+
+// Categories
+const Categories = () => {
+  const categories = [
+    {
+      name: 'Sarees',
+      count: '500+',
+      bg: 'bg-gradient-to-br from-pink-100 to-rose-200',
+      icon: '🥻',
+    },
+    {
+      name: 'Lehengas',
+      count: '200+',
+      bg: 'bg-gradient-to-br from-red-100 to-pink-200',
+      icon: '👰',
+    },
+    {
+      name: 'Suits',
+      count: '350+',
+      bg: 'bg-gradient-to-br from-purple-100 to-pink-200',
+      icon: '🎀',
+    },
+    {
+      name: 'Kurtis',
+      count: '600+',
+      bg: 'bg-gradient-to-br from-amber-100 to-orange-200',
+      icon: '👘',
+    },
+  ]
+
+  return (
+    <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
+      <h3 className='text-3xl font-bold mb-8 text-center text-gray-800'>
+        Shop by Category
+      </h3>
+      <div className='grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6'>
+        {categories.map((cat) => (
+          <div
+            key={cat.name}
+            className={`${cat.bg} p-6 rounded-2xl text-center cursor-pointer hover:scale-105 transition transform shadow-md hover:shadow-xl`}
+          >
+            <div className='text-5xl mb-3'>{cat.icon}</div>
+            <h4 className='font-bold text-lg text-gray-800'>{cat.name}</h4>
+            <p className='text-sm text-gray-600 mt-1'>{cat.count} styles</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Product Card
+const ProductCard = ({ product }) => {
+  const addToCart = useCartStore((state) => state.addToCart)
+  const [added, setAdded] = useState(false)
+
+  const handleAddToCart = () => {
+    addToCart(product)
+    setAdded(true)
+    setTimeout(() => setAdded(false), 2000)
+  }
+
+  return (
+    <div className='bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-2xl transition group'>
+      <div
+        className={`${product.color} h-64 flex items-center justify-center text-7xl relative overflow-hidden`}
+      >
+        <div className='text-8xl transform group-hover:scale-110 transition'>
+          {product.image}
+        </div>
+        <button className='absolute top-3 right-3 bg-white p-2 rounded-full shadow-md hover:bg-pink-50 transition'>
+          <Heart size={18} className='text-pink-500' />
+        </button>
+      </div>
+      <div className='p-4'>
+        <div className='flex items-center justify-between mb-2'>
+          <span className='text-xs text-pink-600 uppercase font-semibold'>
+            {product.category}
+          </span>
+          <div className='flex items-center bg-green-50 px-2 py-1 rounded'>
+            <Star size={12} className='text-green-600 fill-current' />
+            <span className='text-xs ml-1 font-semibold text-green-600'>
+              {product.rating}
+            </span>
+          </div>
+        </div>
+        <h4 className='font-semibold text-lg mb-3 text-gray-800'>
+          {product.name}
+        </h4>
+        <div className='flex items-center justify-between'>
+          <span className='text-2xl font-bold text-pink-600'>
+            ₹{product.price.toLocaleString()}
+          </span>
+          <button
+            onClick={handleAddToCart}
+            className={`px-4 py-2 rounded-lg font-semibold transition transform hover:scale-105 ${
+              added
+                ? 'bg-green-500 text-white'
+                : 'bg-gradient-to-r from-pink-500 to-rose-500 text-white'
+            }`}
+          >
+            {added ? '✓ Added' : 'Add to Bag'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Products
+const Products = () => {
+  const { data: products, isLoading } = useQuery({
+    queryKey: ['products'],
+    queryFn: fetchProducts,
+  })
+
+  if (isLoading) {
+    return (
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
+        <div className='text-center'>
+          <div className='inline-block animate-spin rounded-full h-12 w-12 border-4 border-pink-200 border-t-pink-600'></div>
+          <p className='mt-4 text-gray-600'>Loading beautiful collections...</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
+      <div className='text-center mb-8'>
+        <h3 className='text-3xl font-bold text-gray-800 mb-2'>Trending Now</h3>
+        <p className='text-gray-600'>Handpicked styles for you</p>
+      </div>
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Promo Banner
+const PromoBanner = () => {
+  return (
+    <div className='bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 py-16'>
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white'>
+        <h3 className='text-3xl md:text-4xl font-bold mb-4'>
+          Festive Season Sale
+        </h3>
+        <p className='text-xl mb-6'>Get up to 50% off on selected items</p>
+        <button className='bg-white text-orange-600 px-8 py-3 rounded-full font-bold hover:bg-orange-50 transition transform hover:scale-105'>
+          Shop Sale
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// Footer
+const Footer = () => {
+  return (
+    <footer className='bg-gradient-to-b from-pink-50 to-white border-t border-pink-100 mt-16'>
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
+        <div className='grid grid-cols-1 md:grid-cols-4 gap-8'>
+          <div>
+            <h4 className='text-2xl font-bold bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent mb-4'>
+              Aarria
+            </h4>
+            <p className='text-gray-600'>
+              Celebrating Indian heritage through timeless fashion
+            </p>
+          </div>
+          <div>
+            <h5 className='font-bold text-gray-800 mb-4'>Shop</h5>
+            <ul className='space-y-2 text-gray-600'>
+              <li>
+                <a href='#' className='hover:text-pink-600 transition'>
+                  Sarees
+                </a>
+              </li>
+              <li>
+                <a href='#' className='hover:text-pink-600 transition'>
+                  Lehengas
+                </a>
+              </li>
+              <li>
+                <a href='#' className='hover:text-pink-600 transition'>
+                  Suits
+                </a>
+              </li>
+              <li>
+                <a href='#' className='hover:text-pink-600 transition'>
+                  Kurtis
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h5 className='font-bold text-gray-800 mb-4'>Customer Care</h5>
+            <ul className='space-y-2 text-gray-600'>
+              <li>
+                <a href='#' className='hover:text-pink-600 transition'>
+                  Contact Us
+                </a>
+              </li>
+              <li>
+                <a href='#' className='hover:text-pink-600 transition'>
+                  Track Order
+                </a>
+              </li>
+              <li>
+                <a href='#' className='hover:text-pink-600 transition'>
+                  Returns
+                </a>
+              </li>
+              <li>
+                <a href='#' className='hover:text-pink-600 transition'>
+                  Size Guide
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h5 className='font-bold text-gray-800 mb-4'>Stay Connected</h5>
+            <p className='text-gray-600 mb-4'>Subscribe for exclusive offers</p>
+            <input
+              type='email'
+              placeholder='Your email'
+              className='w-full px-4 py-2 rounded-lg border border-pink-200 focus:outline-none focus:border-pink-400'
+            />
+          </div>
+        </div>
+        <div className='border-t border-pink-100 mt-8 pt-8 text-center text-gray-600'>
+          <p>&copy; 2024 Aarria. Crafted with love for Indian fashion.</p>
+        </div>
+      </div>
+    </footer>
+  )
+}
+
+// Main App
+const queryClient = new QueryClient()
+
+const Home = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <div className='min-h-screen bg-gradient-to-b from-white to-pink-50'>
+        <Navbar />
+        <HeroSlider />
+        <Categories />
+        <Products />
+        <PromoBanner />
+        <Footer />
+      </div>
+    </QueryClientProvider>
+  )
+}
+
+export default Home
