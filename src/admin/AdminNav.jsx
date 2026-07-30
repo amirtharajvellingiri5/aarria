@@ -13,11 +13,14 @@ import {
   Check,
   Search,
   FileText,
+  ChevronDown,
+  MoreHorizontal,
 } from 'lucide-react'
 
 import './admin-themes.css'
 
-const LINKS = [
+// day-to-day pages stay as top-level buttons
+const PRIMARY_LINKS = [
   {
     label: 'Products',
     href: '/admin',
@@ -39,6 +42,10 @@ const LINKS = [
     icon: Truck,
     isActive: (path) => path.startsWith('/admin/orders'),
   },
+]
+
+// less-frequent reports/utilities go under the "More" dropdown
+const MENU_LINKS = [
   {
     label: 'No Stock',
     href: '/admin/products/no-stock',
@@ -134,6 +141,55 @@ function ThemeSwitcher() {
   )
 }
 
+function MoreMenu({ pathname }) {
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef(null)
+  const active = MENU_LINKS.some((l) => l.isActive(pathname))
+
+  useEffect(() => {
+    if (!open) return
+    const close = (e) => {
+      if (!rootRef.current?.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [open])
+
+  return (
+    <div className='relative' ref={rootRef}>
+      <button
+        onClick={() => setOpen((p) => !p)}
+        className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors border ${
+          active
+            ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+            : 'text-stone-400 hover:text-stone-100 hover:bg-stone-800 border-transparent'
+        }`}
+      >
+        <MoreHorizontal size={13} /> More <ChevronDown size={12} />
+      </button>
+
+      {open && (
+        <div className='absolute left-0 mt-1 w-44 bg-stone-900 border border-stone-700 rounded-xl shadow-2xl overflow-hidden z-50'>
+          {MENU_LINKS.map(({ label, href, icon: Icon, isActive }) => (
+            <a
+              key={href}
+              href={href}
+              onClick={() => setOpen(false)}
+              className={`flex items-center gap-2 px-3 py-2.5 text-xs font-semibold transition-colors no-underline ${
+                isActive(pathname)
+                  ? 'text-rose-400 bg-stone-800'
+                  : 'text-stone-300 hover:bg-stone-800 hover:text-stone-100'
+              }`}
+            >
+              <Icon size={13} /> {label}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 /**
  * Common sticky navbar for all admin pages.
  * Page-specific action buttons go in `children` (right side).
@@ -154,7 +210,7 @@ export default function AdminNav({ children }) {
 
         {/* Links */}
         <nav className='flex items-center gap-1 overflow-x-auto'>
-          {LINKS.map(({ label, href, icon: Icon, isActive }) => {
+          {PRIMARY_LINKS.map(({ label, href, icon: Icon, isActive }) => {
             const active = isActive(pathname)
             return (
               <a
@@ -170,6 +226,7 @@ export default function AdminNav({ children }) {
               </a>
             )
           })}
+          <MoreMenu pathname={pathname} />
           <a
             href='/products'
             target='_blank'
