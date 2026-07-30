@@ -91,10 +91,8 @@ const generateInvoice = (order) => {
   </style>
 </head>
 <body>
-  <div style="background:#050C1C;border-radius:10px;padding:20px 24px 16px;margin-bottom:12px;text-align:center;border:1px solid #C9A84C44;">
-    <img src="${window.location.origin}/vlogo__1_-removebg-preview.png" alt="Vaarria" style="height:56px;object-fit:contain;margin-bottom:6px;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"/>
-    <div style="display:none;font-size:22px;font-weight:800;color:#C9A84C;font-family:'Playfair Display',Georgia,serif;letter-spacing:0.2em;">VAARRIA</div>
-    <div style="font-size:8px;color:#C9A84C88;letter-spacing:0.18em;text-transform:uppercase;">WHERE ELEGANCE FINDS FORM</div>
+  <div style="text-align:center;margin-bottom:12px;">
+    <img src="${window.location.origin}/vlogo.png" alt="Vaarria" style="height:60px;object-fit:contain;"/>
   </div>
   <p class="muted">www.vaarria.com</p>
 
@@ -120,6 +118,7 @@ const generateInvoice = (order) => {
   <div class="totals">
     <div><span>MRP Total</span><span>₹${Number(order.mrp).toLocaleString('en-IN')}</span></div>
     <div style="color:#16a34a"><span>Discount</span><span>-₹${Number(order.discount).toLocaleString('en-IN')}</span></div>
+    ${order.special_discount ? `<div style="color:#16a34a"><span>Special Discount</span><span>-₹${Number(order.special_discount).toLocaleString('en-IN')}</span></div>` : ''}
     <div><span>Delivery</span><span>${order.delivery === 0 ? 'FREE' : `₹${order.delivery}`}</span></div>
     <div class="grand"><span>Total Paid</span><span>₹${Number(order.total).toLocaleString('en-IN')}</span></div>
   </div>

@@ -4,6 +4,7 @@ import {
   Package,
   PlusCircle,
   Truck,
+  Archive,
   ExternalLink,
   Moon,
   Sun,
@@ -35,6 +36,12 @@ const LINKS = [
     href: '/admin/orders',
     icon: Truck,
     isActive: (path) => path.startsWith('/admin/orders'),
+  },
+  {
+    label: 'No Stock',
+    href: '/admin/products/no-stock',
+    icon: Archive,
+    isActive: (path) => path.startsWith('/admin/products/no-stock'),
   },
 ]
 
