@@ -11,6 +11,7 @@ import {
   Waves,
   Sunset,
   Check,
+  Search,
 } from 'lucide-react'
 
 import './admin-themes.css'
@@ -42,6 +43,12 @@ const LINKS = [
     href: '/admin/products/no-stock',
     icon: Archive,
     isActive: (path) => path.startsWith('/admin/products/no-stock'),
+  },
+  {
+    label: 'Orphans',
+    href: '/admin/products/orphans',
+    icon: Search,
+    isActive: (path) => path.startsWith('/admin/products/orphans'),
   },
 ]
 

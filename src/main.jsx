@@ -22,6 +22,7 @@ import OrderSuccess from './info/OrderSuccess.jsx'
 import PaymentFailed from './info/PaymentFailed.jsx'
 import AdminOrders from './admin/orders/AdminOrders.jsx'
 import NoStockProducts from './admin/NoStockProducts.jsx'
+import OrphanReport from './admin/OrphanReport.jsx'
 import OrdersPage from './OrdersPage.jsx'
 import ReviewPage from './ReviewPage.jsx'
 import WishlistPage from './WishlistPage.jsx'
@@ -56,6 +57,7 @@ const router = createBrowserRouter([
   { path: '/admin/products/edit/:id', element: <AdminGate><ProductEdit /></AdminGate> },
   { path: '/admin/orders', element: <AdminGate><AdminOrders/></AdminGate> },
   { path: '/admin/products/no-stock', element: <AdminGate><NoStockProducts /></AdminGate> },
+  { path: '/admin/products/orphans', element: <AdminGate><OrphanReport /></AdminGate> },
   { path: '/order-success', element: <OrderSuccess /> },
   { path: '/payment-failed', element: <PaymentFailed /> },
 
