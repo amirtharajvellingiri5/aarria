@@ -258,6 +258,8 @@ async function fetchProduct(productId) {
   return {
     id: raw.product_id,
     coupon,
+    couponDiscount: discountMeta?.value ?? 0,
+    discountType: discountMeta?.discount_type ?? null,
     brand: raw.brand.name,
     brandId: raw.brand.catalogue_id,
     category: raw.category.category_name,
@@ -1272,8 +1274,8 @@ export default function ProductDetail() {
           qty: 1,
           price: product.price || 0,
           mrp: product.mrp || 0,
-          couponDiscount: 0,
-          discountType: null,
+          couponDiscount: product.couponDiscount || 0,
+          discountType: product.discountType || null,
           returnDays: product.return_days || 7,
           selected: true,
         }

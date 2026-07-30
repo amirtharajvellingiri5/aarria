@@ -125,7 +125,7 @@ const printInvoice = (order) => {
 <body>
   <div class="top">
     <div>
-      <p class="brand">aarria</p>
+      <img src="${window.location.origin}/vlogo.png" alt="Vaarria" style="height:40px;object-fit:contain;display:block;margin-bottom:6px;"/>
       <p class="muted">www.vaarria.com · Women's Ethnic Wear</p>
     </div>
     <div style="text-align:right">
@@ -161,10 +161,14 @@ const printInvoice = (order) => {
   </table>
 
   <div class="totals">
+    <div><span>MRP Total</span><span>₹${Number(order.mrp || order.total).toLocaleString('en-IN')}</span></div>
+    ${order.discount ? `<div style="color:#16a34a"><span>Discount</span><span>-₹${Number(order.discount).toLocaleString('en-IN')}</span></div>` : ''}
+    ${order.special_discount ? `<div style="color:#16a34a"><span>Special Discount</span><span>-₹${Number(order.special_discount).toLocaleString('en-IN')}</span></div>` : ''}
+    ${order.delivery ? `<div><span>Delivery</span><span>₹${Number(order.delivery).toLocaleString('en-IN')}</span></div>` : ''}
     <div class="grand"><span>Total ${order.payment_status === 'PAID' ? '(Paid)' : ''}</span><span>₹${Number(order.total).toLocaleString('en-IN')}</span></div>
   </div>
 
-  <p class="footer">This is a computer generated invoice. Thank you for shopping with Aarria.</p>
+  <p class="footer">This is a computer generated invoice. Thank you for shopping with Vaarria.</p>
 </body>
 </html>`)
   win.document.close()
