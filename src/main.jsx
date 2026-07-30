@@ -23,6 +23,7 @@ import PaymentFailed from './info/PaymentFailed.jsx'
 import AdminOrders from './admin/orders/AdminOrders.jsx'
 import NoStockProducts from './admin/NoStockProducts.jsx'
 import OrphanReport from './admin/OrphanReport.jsx'
+import TestReports from './admin/TestReports.jsx'
 import OrdersPage from './OrdersPage.jsx'
 import ReviewPage from './ReviewPage.jsx'
 import WishlistPage from './WishlistPage.jsx'
@@ -31,11 +32,6 @@ import { useAuthStore } from './store/authStore'
 import AdminGate from './admin/AdminGate.jsx'
 
 const queryClient = new QueryClient()  // ← add
-
-// Silently restore access token from refresh cookie on page load, then keep it alive
-const { customer, refreshToken, startAutoRefresh } = useAuthStore.getState()
-if (customer) refreshToken()
-startAutoRefresh()
 
 const router = createBrowserRouter([
   { path: '/', element: <Home /> },
@@ -58,15 +54,27 @@ const router = createBrowserRouter([
   { path: '/admin/orders', element: <AdminGate><AdminOrders/></AdminGate> },
   { path: '/admin/products/no-stock', element: <AdminGate><NoStockProducts /></AdminGate> },
   { path: '/admin/products/orphans', element: <AdminGate><OrphanReport /></AdminGate> },
+  { path: '/test/reports', element: <AdminGate><TestReports /></AdminGate> },
   { path: '/order-success', element: <OrderSuccess /> },
   { path: '/payment-failed', element: <PaymentFailed /> },
 
 ])
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>  {/* ← wrap */}
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  </StrictMode>
-)
+async function bootstrap() {
+  // Await the access-token refresh before first render — admin pages read
+  // the in-memory token synchronously on mount, and a fire-and-forget
+  // refresh here used to race them into an early 401 on hard reloads.
+  const { customer, refreshToken, startAutoRefresh } = useAuthStore.getState()
+  if (customer) await refreshToken()
+  startAutoRefresh()
+
+  createRoot(document.getElementById('root')).render(
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>  {/* ← wrap */}
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </StrictMode>
+  )
+}
+
+bootstrap()

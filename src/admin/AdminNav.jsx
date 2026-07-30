@@ -12,6 +12,7 @@ import {
   Sunset,
   Check,
   Search,
+  FileText,
 } from 'lucide-react'
 
 import './admin-themes.css'
@@ -49,6 +50,12 @@ const LINKS = [
     href: '/admin/products/orphans',
     icon: Search,
     isActive: (path) => path.startsWith('/admin/products/orphans'),
+  },
+  {
+    label: 'Test Reports',
+    href: '/test/reports',
+    icon: FileText,
+    isActive: (path) => path.startsWith('/test/reports'),
   },
 ]
 
