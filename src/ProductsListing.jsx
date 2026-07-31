@@ -347,6 +347,14 @@ const FilterSection = ({
 
 // ── Filter Sidebar ─────────────────────────────────────────────────────────────
 
+// Filters beyond Category/Color/Size/Price/Fabric render here, in order, so
+// adding a new one (e.g. from a future product field) is a one-line entry
+// instead of a new hardcoded JSX block.
+const EXTRA_FILTERS = [
+  { key: 'neckType', title: 'Neck Type', itemsKey: 'neckTypes' },
+  { key: 'sleeveLength', title: 'Sleeve Length', itemsKey: 'sleeveLengths' },
+]
+
 const FilterSidebar = ({
   filters,
   selectedFilters,
@@ -360,9 +368,8 @@ const FilterSidebar = ({
     fabric: true,
     color: true,
     size: true,
-    neckType: true,
-    sleeveLength: true,
     price: true,
+    ...Object.fromEntries(EXTRA_FILTERS.map((f) => [f.key, true])),
   })
 
   const toggleSection = (section) => {
@@ -437,18 +444,17 @@ const FilterSidebar = ({
         selectedFilters={selectedFilters} onFilterChange={onFilterChange}
         currentSlug={currentSlug}
       />
-      <FilterSection
-        title='Neck Type' items={filters.neckTypes} filterKey='neckType'
-        expanded={expandedSections.neckType} onToggle={toggleSection}
-        selectedFilters={selectedFilters} onFilterChange={onFilterChange}
-        currentSlug={currentSlug}
-      />
-      <FilterSection
-        title='Sleeve Length' items={filters.sleeveLengths} filterKey='sleeveLength'
-        expanded={expandedSections.sleeveLength} onToggle={toggleSection}
-        selectedFilters={selectedFilters} onFilterChange={onFilterChange}
-        currentSlug={currentSlug}
-      />
+      {EXTRA_FILTERS.map(({ key, title, itemsKey }) =>
+        filters[itemsKey]?.length ? (
+          <FilterSection
+            key={key}
+            title={title} items={filters[itemsKey]} filterKey={key}
+            expanded={expandedSections[key]} onToggle={toggleSection}
+            selectedFilters={selectedFilters} onFilterChange={onFilterChange}
+            currentSlug={currentSlug}
+          />
+        ) : null,
+      )}
     </div>
   )
 }
@@ -799,14 +805,9 @@ const ListingPage = () => {
 
       sizes: availableFilters?.sizes || [],
 
-      neckTypes: ['Round Neck', 'V-Neck', 'Boat Neck', 'Mandarin Collar'],
+      neckTypes: availableFilters?.neck_types || [],
 
-      sleeveLengths: [
-        'Sleeveless',
-        'Short Sleeves',
-        '3/4 Sleeves',
-        'Long Sleeves',
-      ],
+      sleeveLengths: availableFilters?.sleeve_lengths || [],
 
       priceRanges: [
         { label: 'Under ₹2000', min: 0, max: 2000 },
@@ -960,7 +961,7 @@ const ListingPage = () => {
 
           {/* Products area */}
           <div className='flex-1'>
-            <div className='px-6 pt-4 pb-6'>
+            <div className='px-6 pt-4 pb-6 flex flex-col min-h-[70vh]'>
             <SelectedFiltersBar
               selectedFilters={selectedFilters}
               onRemoveFilter={handleRemoveFilter}
@@ -972,23 +973,41 @@ const ListingPage = () => {
                   <ProductCardSkeleton key={i} />
                 ))}
               </div>
-            ) : paginatedProducts.length > 0 ? (
+            ) : (
               <>
-                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3'>
-                  {paginatedProducts.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      onViewDetails={(p) =>
-                        window.open(`/product/${p.id}`, '_blank')
-                      }
-                      onWishlistLoginNeeded={(pid) => setWishlistModal({ open: true, pendingProductId: pid })}
-                    />
-                  ))}
-                </div>
+                {paginatedProducts.length > 0 ? (
+                  <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3'>
+                    {paginatedProducts.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        onViewDetails={(p) =>
+                          window.open(`/product/${p.id}`, '_blank')
+                        }
+                        onWishlistLoginNeeded={(pid) => setWishlistModal({ open: true, pendingProductId: pid })}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className='text-center py-16 flex flex-col items-center'>
+                    <ShoppingBag size={56} style={{ color: '#e8e0d0', marginBottom: '16px' }} />
+                    <p style={{ fontSize: '17px', fontWeight: 600, color: '#555', marginBottom: '6px' }}>
+                      No products found
+                    </p>
+                    <p style={{ fontSize: '13px', color: '#999', marginBottom: '20px' }}>
+                      Try adjusting or clearing your filters
+                    </p>
+                    <button
+                      onClick={handleClearFilters}
+                      style={{ padding: '10px 28px', background: '#050C1C', border: '1.5px solid #C9A84C', borderRadius: '8px', color: '#C9A84C', fontSize: '13px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}
+                    >
+                      Clear Filters
+                    </button>
+                  </div>
+                )}
 
-                {/* Pagination — min-height matches filter sidebar */}
-                <div className='mt-6 border-t border-transparent bg-white px-4 py-4'>
+                {/* Pagination pinned to the bottom of the products area, leaving the gap in the middle */}
+                <div className='mt-auto pt-6 border-t border-transparent bg-white px-4 py-4'>
                   <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}
@@ -996,25 +1015,6 @@ const ListingPage = () => {
                   />
                 </div>
               </>
-            ) : (
-              <div
-                className='text-center py-16 flex flex-col items-center justify-center'
-                style={{ minHeight: '400px' }}
-              >
-                <ShoppingBag size={56} style={{ color: '#e8e0d0', marginBottom: '16px' }} />
-                <p style={{ fontSize: '17px', fontWeight: 600, color: '#555', marginBottom: '6px' }}>
-                  No products found
-                </p>
-                <p style={{ fontSize: '13px', color: '#999', marginBottom: '20px' }}>
-                  Try adjusting or clearing your filters
-                </p>
-                <button
-                  onClick={handleClearFilters}
-                  style={{ padding: '10px 28px', background: '#050C1C', border: '1.5px solid #C9A84C', borderRadius: '8px', color: '#C9A84C', fontSize: '13px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.04em' }}
-                >
-                  Clear Filters
-                </button>
-              </div>
             )}
             </div>
           </div>
