@@ -1115,6 +1115,15 @@ export default function ProductDetail() {
   const isOutOfStock =
     !product?.sizes?.length || !product?.availableSizes?.length
 
+  // Sarees don't show a size selector; single-size products don't need one either —
+  // auto-select so Add to Bag isn't blocked on a choice the user never gets to make.
+  useEffect(() => {
+    if (!product) return
+    if (product.category === 'Sarees' || product.sizes?.length === 1) {
+      setSelectedSize(product.availableSizes?.[0] ?? product.sizes?.[0] ?? null)
+    }
+  }, [product])
+
   useEffect(() => {
     setLoading(true)
     setNotFound(false)
@@ -1150,7 +1159,7 @@ export default function ProductDetail() {
 
     // View history slider
     if (cid) {
-      fetch(`${ORDERS}/history/${cid}`, { credentials: 'include' })
+      authFetch(`${ORDERS}/history/${cid}`)
         .then(r => r.json())
         .then(async ({ product_ids = [] }) => {
           const ids = product_ids.filter(id => String(id) !== String(productId)).slice(0, 12)
@@ -1808,35 +1817,39 @@ export default function ProductDetail() {
 
             <div className='pdp-hr' />
 
-            <div className='pdp-size-header'>
-              <span className='pdp-section-label'>Select Size</span>
-              <span
-                className='pdp-size-guide'
-                onClick={() => setShowSizeChart(true)}
-              >
-                Size Guide
-              </span>
-            </div>
-            <div className='pdp-sizes'>
-              {product.sizes.map((s) => {
-                const avail = product.availableSizes.includes(s)
-                return (
-                  <button
-                    key={s}
-                    className={`pdp-size-btn ${selectedSize === s ? 'selected' : ''}`}
-                    disabled={!avail}
-                    title={avail ? undefined : 'Sold out'}
-                    onClick={() => avail && setSelectedSize(s)}
+            {product.category !== 'Sarees' && (
+              <>
+                <div className='pdp-size-header'>
+                  <span className='pdp-section-label'>Select Size</span>
+                  <span
+                    className='pdp-size-guide'
+                    onClick={() => setShowSizeChart(true)}
                   >
-                    {s}
-                  </button>
-                )
-              })}
-            </div>
+                    Size Guide
+                  </span>
+                </div>
+                <div className='pdp-sizes'>
+                  {product.sizes.map((s) => {
+                    const avail = product.availableSizes.includes(s)
+                    return (
+                      <button
+                        key={s}
+                        className={`pdp-size-btn ${selectedSize === s ? 'selected' : ''}`}
+                        disabled={!avail}
+                        title={avail ? undefined : 'Sold out'}
+                        onClick={() => avail && setSelectedSize(s)}
+                      >
+                        {s}
+                      </button>
+                    )
+                  })}
+                </div>
+              </>
+            )}
             {/* per-size stock counter */}
             {selectedSize && product.sizeQuantities?.[selectedSize] > 0 && product.sizeQuantities[selectedSize] <= 6 && (
               <div style={{ fontSize: 12, color: '#b45309', fontWeight: 600, marginTop: 8, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 5 }}>
-                <span style={{ fontSize: 14 }}>🔥</span> Only {product.sizeQuantities[selectedSize]} left in size {selectedSize} — grab it fast!
+                <span style={{ fontSize: 14 }}>🔥</span> Only {product.sizeQuantities[selectedSize]} left{product.category !== 'Sarees' ? ` in size ${selectedSize}` : ''} — grab it fast!
               </div>
             )}
             {isOutOfStock && (
@@ -1984,7 +1997,7 @@ export default function ProductDetail() {
               )}
             </div>
 
-            {!isOutOfStock && product.availableSizes?.length > 0 && product.availableSizes?.length < 3 && (
+            {!isOutOfStock && product.category !== 'Sarees' && product.availableSizes?.length > 0 && product.availableSizes?.length < 3 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, padding: '7px 10px', background: '#FFF8EC', border: '1px solid #F0D080', borderRadius: 5 }}>
                 <span style={{ fontSize: 15 }}>🔥</span>
                 <span style={{ fontSize: 12, color: '#92400e', fontWeight: 600 }}>Only a few sizes left — selling fast!</span>
