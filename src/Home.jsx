@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle, RefreshCw, Wallet, Factory, Eye, ShieldCheck }
 import Navbar from './Navbar'
 import Footer from './Footer'
 import { useAuthStore } from './store/authStore'
+import { authFetch } from './utils/authFetch'
 import { CATALOG_URL, ORDERS_URL } from './config'
 
 const GOLD = '#C9A84C'
@@ -50,7 +51,7 @@ function useRecentlyViewed(customerId) {
   useEffect(() => {
     if (!customerId) return
     const ORDERS = ORDERS_URL
-    fetch(`${ORDERS}/history/${customerId}`, { credentials: 'include' })
+    authFetch(`${ORDERS}/history/${customerId}`)
       .then(r => r.json())
       .then(async ({ product_ids = [] }) => {
         const ids = product_ids.slice(0, 10)
