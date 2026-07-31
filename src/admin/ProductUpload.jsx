@@ -372,7 +372,7 @@ const ProductUpload = () => {
   const [catalogueId, setCatalogueId] = useState('123')
 
   // Category
-  const [categoryId, setCategoryId] = useState(14) // ponytail: 14 = Suit Set (3 Piece), default per request
+  const [categoryId, setCategoryId] = useState(14) // ponytail: 14 = 3-Piece Suit Sets, default per request
   const categorySlug = categories.find((c) => c.category_id === categoryId)?.slug
   const isSaree = categorySlug === 'sarees'
   const isDressMaterial = categorySlug === 'dress-materials'
