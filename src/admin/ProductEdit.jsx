@@ -25,18 +25,10 @@ import { useAuthStore } from '../store/authStore'
 import { MATERIALS } from '../constants/materials'
 import { DESIGNS } from '../constants/designs'
 import { BOTTOM_TYPES } from '../constants/bottomTypes'
+import { COLOR_MAP, formatColorLabel } from '../constants/colors'
 const authHeaders = () => ({ Authorization: `Bearer ${useAuthStore.getState().token || ''}` })
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-// Replace with your actual import: import { COLOR_MAP, formatColorLabel } from '../constants/colors'
-const COLOR_MAP = {
-  red: '#ef4444', blue: '#3b82f6', green: '#22c55e', black: '#000000',
-  white: '#ffffff', yellow: '#eab308', pink: '#ec4899', purple: '#a855f7',
-  orange: '#f97316', brown: '#92400e', grey: '#6b7280', navy: '#1e3a5f',
-  maroon: '#7f1d1d', teal: '#14b8a6', beige: '#d4b896', cream: '#fffdd0',
-  coral: '#ff6b6b', mint: '#98ff98', lavender: '#e6e6fa', gold: '#ffd700',
-}
-const formatColorLabel = (key) => key.charAt(0).toUpperCase() + key.slice(1)
 const COLOR_OPTIONS = Object.keys(COLOR_MAP).map(formatColorLabel)
 
 const uid = () => Math.random().toString(36).slice(2)
