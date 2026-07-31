@@ -19,9 +19,9 @@ const CATEGORIES = [
   { label: 'Tunics', slug: 'tunics', bg: '#A89F91' },
   { label: 'Leggings', slug: 'leggings', bg: '#D3C7B3' },
   { label: 'Straight Pants', slug: 'straight-pants', bg: '#BDB09B' },
-  { label: 'Suit Set (3 Piece)', slug: 'suit-set-3pc', bg: '#C7B8A3' },
-  { label: 'Suit Set (Top & Dupatta)', slug: 'suit-set-top-dupatta', bg: '#AE9F89' },
-  { label: 'Suit Set (Top & Kurti)', slug: 'suit-set-top-kurti', bg: '#DED2BE' },
+  { label: '3-Piece Suit Sets', slug: 'suit-set-3pc', bg: '#C7B8A3' },
+  { label: '2-Piece Sets', slug: 'suit-set-top-dupatta', bg: '#AE9F89' },
+  { label: 'Kurtis', slug: 'suit-set-top-kurti', bg: '#DED2BE' },
 ]
 
 const PROMISES = [

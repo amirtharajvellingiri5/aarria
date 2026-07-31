@@ -34,7 +34,7 @@ export const ADMIN_CATEGORIES = [
   { category_id: 11, name: 'Tunics', slug: 'tunics' },
   { category_id: 12, name: 'Leggings', slug: 'leggings' },
   { category_id: 13, name: 'Straight Pants', slug: 'straight-pants' },
-  { category_id: 14, name: 'Suit Set (3 Piece)', slug: 'suit-set-3pc' },
-  { category_id: 15, name: 'Suit Set (Top & Dupatta)', slug: 'suit-set-top-dupatta' },
-  { category_id: 16, name: 'Suit Set (Top & Kurti)', slug: 'suit-set-top-kurti' },
+  { category_id: 14, name: '3-Piece Suit Sets', slug: 'suit-set-3pc' },
+  { category_id: 15, name: '2-Piece Sets', slug: 'suit-set-top-dupatta' },
+  { category_id: 16, name: 'Kurtis', slug: 'suit-set-top-kurti' },
 ]
