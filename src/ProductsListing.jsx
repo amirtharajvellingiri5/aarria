@@ -280,8 +280,10 @@ const FilterSection = ({
           : filterKey === 'color'
           ? (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {items.map((item) => {
-                  const hex = COLOR_MAP[item?.trim().toLowerCase()]
+                {[...new Set(
+                  items.flatMap((item) => (item || '').split(',').map((p) => p.trim()).filter(Boolean))
+                )].map((item) => {
+                  const hex = COLOR_MAP[item.toLowerCase()] || null
                   const isSelected = selectedFilters[filterKey]?.includes(item) || false
                   return (
                     <button
