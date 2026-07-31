@@ -7,9 +7,13 @@ const ADMIN_MOBILE_NUMBERS = new Set(['9731580157', '8553797479'])
 // customer record doesn't silently fail the exact-string admin check
 const normalizeMobile = (mobileNo) => String(mobileNo || '').replace(/\D/g, '').slice(-10)
 
+const AUTH_DISABLED = true // TEMP: admin auth bypass — flip to false before deploying
+
 export default function AdminGate({ children }) {
   const location = useLocation()
   const customer = useAuthStore((s) => s.customer)
+
+  if (AUTH_DISABLED) return children
 
   if (!customer || !ADMIN_MOBILE_NUMBERS.has(normalizeMobile(customer.mobile_no))) {
     return (

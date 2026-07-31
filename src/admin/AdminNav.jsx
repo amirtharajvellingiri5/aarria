@@ -15,6 +15,7 @@ import {
   FileText,
   ChevronDown,
   MoreHorizontal,
+  RefreshCw,
 } from 'lucide-react'
 
 import './admin-themes.css'
@@ -57,6 +58,12 @@ const MENU_LINKS = [
     href: '/admin/products/orphans',
     icon: Search,
     isActive: (path) => path.startsWith('/admin/products/orphans'),
+  },
+  {
+    label: 'Category Sync',
+    href: '/admin/products/sync',
+    icon: RefreshCw,
+    isActive: (path) => path.startsWith('/admin/products/sync'),
   },
   {
     label: 'Test Reports',
@@ -209,23 +216,29 @@ export default function AdminNav({ children }) {
         </a>
 
         {/* Links */}
-        <nav className='flex items-center gap-1 overflow-x-auto'>
-          {PRIMARY_LINKS.map(({ label, href, icon: Icon, isActive }) => {
-            const active = isActive(pathname)
-            return (
-              <a
-                key={href}
-                href={href}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors no-underline ${
-                  active
-                    ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
-                    : 'text-stone-400 hover:text-stone-100 hover:bg-stone-800 border border-transparent'
-                }`}
-              >
-                <Icon size={13} /> {label}
-              </a>
-            )
-          })}
+        <nav className='flex items-center gap-1 min-w-0'>
+          {/* only the primary links scroll horizontally — MoreMenu's dropdown
+              must stay outside this container, since overflow-x-auto forces
+              overflow-y to clip too (CSS spec: visible + non-visible on the
+              other axis both compute to auto), which would hide the dropdown */}
+          <div className='flex items-center gap-1 overflow-x-auto'>
+            {PRIMARY_LINKS.map(({ label, href, icon: Icon, isActive }) => {
+              const active = isActive(pathname)
+              return (
+                <a
+                  key={href}
+                  href={href}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors no-underline ${
+                    active
+                      ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                      : 'text-stone-400 hover:text-stone-100 hover:bg-stone-800 border border-transparent'
+                  }`}
+                >
+                  <Icon size={13} /> {label}
+                </a>
+              )
+            })}
+          </div>
           <MoreMenu pathname={pathname} />
           <a
             href='/products'

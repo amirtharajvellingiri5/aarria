@@ -23,6 +23,7 @@ import PaymentFailed from './info/PaymentFailed.jsx'
 import AdminOrders from './admin/orders/AdminOrders.jsx'
 import NoStockProducts from './admin/NoStockProducts.jsx'
 import OrphanReport from './admin/OrphanReport.jsx'
+import CategorySync from './admin/CategorySync.jsx'
 import TestReports from './admin/TestReports.jsx'
 import OrdersPage from './OrdersPage.jsx'
 import ReviewPage from './ReviewPage.jsx'
@@ -54,6 +55,7 @@ const router = createBrowserRouter([
   { path: '/admin/orders', element: <AdminGate><AdminOrders/></AdminGate> },
   { path: '/admin/products/no-stock', element: <AdminGate><NoStockProducts /></AdminGate> },
   { path: '/admin/products/orphans', element: <AdminGate><OrphanReport /></AdminGate> },
+  { path: '/admin/products/sync', element: <AdminGate><CategorySync /></AdminGate> },
   { path: '/test/reports', element: <AdminGate><TestReports /></AdminGate> },
   { path: '/order-success', element: <OrderSuccess /> },
   { path: '/payment-failed', element: <PaymentFailed /> },
