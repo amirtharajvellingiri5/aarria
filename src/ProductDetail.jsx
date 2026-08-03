@@ -193,7 +193,7 @@ async function fetchProduct(productId) {
   const { product_blurb, highlights: highlightsRaw, Weight, ...desc } = raw.description ?? {}
   const details = { 'Style Code': raw.style_code ?? '—', ...desc }
   Object.keys(details).forEach((k) => {
-    if (details[k] === '' || details[k] == null) delete details[k]
+    if (details[k] === '' || details[k] == null || /colou?r/i.test(k)) delete details[k]
   })
   const discount = Math.round(
     ((raw.pricing.mrp - raw.pricing.sale_price) / raw.pricing.mrp) * 100,
