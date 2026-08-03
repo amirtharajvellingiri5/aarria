@@ -214,19 +214,21 @@ const mapApiToState = (product) => {
     product_id: product.product_id,
   }))
 
+  const desc = product.description?.description || {}
+
   return {
     title: product.title || '',
     brandName: product.brand?.name || '',
     catalogueId: product.brand?.catalogue_id || '',
     categoryId: product.category?.category_id || 5,
-    material: product.description?.Material || '',
-    sleeveLength: product.description?.['Sleeve Length'] || '',
-    neck: product.description?.Neck || '',
-    designStyling: product.description?.['Design Styling'] || '',
-    design: product.description?.Design || '',
-    bottomType: product.description?.['Bottom Type'] || '',
-    description: product.description?.product_blurb || '',
-    highlights: product.description?.highlights || '',
+    material: desc.Material || '',
+    sleeveLength: desc['Sleeve Length'] || '',
+    neck: desc.Neck || '',
+    designStyling: desc['Design Styling'] || '',
+    design: desc.Design || '',
+    bottomType: desc['Bottom Type'] || '',
+    description: desc.product_blurb || '',
+    highlights: desc.highlights || '',
     mrp: String(product.pricing?.mrp || ''),
     salePrice: String(product.pricing?.sale_price || ''),
     buyPrice: String(product.pricing?.buy_price || ''),
