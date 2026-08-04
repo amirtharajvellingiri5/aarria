@@ -131,18 +131,14 @@ const MOCK_RATINGS_API_RESPONSE = {
   ],
 }
 
-// ─── Media items: images + YouTube videos ─────────────────────────────────────
+// ─── Media items: images + per-product YouTube videos ─────────────────────────
 // Each item is { type: 'image'|'video', src, thumb, youtubeId? }
-const PRODUCT_YOUTUBE_VIDEOS = [
-  {
-    youtubeId: 'KR0g-1hnQPA', // replace with real product video IDs
-    title: 'Styling the Kurta Set',
-  },
-  {
-    youtubeId: 'tgbNymZ7vqY',
-    title: 'Fabric & Embroidery Close-up',
-  },
-]
+function extractYoutubeId(url) {
+  const match = String(url || '').match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/,
+  )
+  return match ? match[1] : null
+}
 
 // ─── API Functions ────────────────────────────────────────────────────────────
 async function fetchProduct(productId) {
@@ -167,7 +163,18 @@ async function fetchProduct(productId) {
     (img) => `https://cdn.vaarria.com/app/images/${img}`,
   )
 
-  // Build combined media list: images first, then videos
+  const productVideos = [raw.description?.['Video URL 1'], raw.description?.['Video URL 2']]
+    .map(extractYoutubeId)
+    .filter(Boolean)
+    .map((youtubeId) => ({
+      type: 'video',
+      youtubeId,
+      src: `https://www.youtube.com/embed/${youtubeId}`,
+      thumb: `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`,
+      placeholder: `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`,
+    }))
+
+  // Build combined media list: images first, then videos (only if present)
   const mediaItems = [
     ...images.map((src, i) => ({
       type: 'image',
@@ -175,14 +182,7 @@ async function fetchProduct(productId) {
       thumb: src,
       placeholder: `https://placehold.co/1080x1440/ec4899/ffffff?text=Image+${i + 1}`,
     })),
-    ...PRODUCT_YOUTUBE_VIDEOS.map((v) => ({
-      type: 'video',
-      youtubeId: v.youtubeId,
-      title: v.title,
-      src: `https://www.youtube.com/embed/${v.youtubeId}`,
-      thumb: `https://img.youtube.com/vi/${v.youtubeId}/mqdefault.jpg`,
-      placeholder: `https://img.youtube.com/vi/${v.youtubeId}/mqdefault.jpg`,
-    })),
+    ...productVideos,
   ]
 
   const sizes = variant.sizes.map((s) => s.size)
@@ -190,7 +190,14 @@ async function fetchProduct(productId) {
     .filter((s) => s.quantity > 0)
     .map((s) => s.size)
 
-  const { product_blurb, highlights: highlightsRaw, Weight, ...desc } = raw.description ?? {}
+  const {
+    product_blurb,
+    highlights: highlightsRaw,
+    Weight,
+    'Video URL 1': _videoUrl1,
+    'Video URL 2': _videoUrl2,
+    ...desc
+  } = raw.description ?? {}
   const details = { 'Style Code': raw.style_code ?? '—', ...desc }
   Object.keys(details).forEach((k) => {
     if (details[k] === '' || details[k] == null || /colou?r/i.test(k)) delete details[k]

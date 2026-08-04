@@ -241,7 +241,7 @@ export default function AdminNav({ children }) {
           </div>
           <MoreMenu pathname={pathname} />
           <a
-            href='/products'
+            href='/'
             target='_blank'
             rel='noreferrer'
             className='flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-colors no-underline border border-transparent'

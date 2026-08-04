@@ -103,7 +103,7 @@ export default function OrderSuccess() {
         </div>
 
         {/* ── Heading ── */}
-        <h1 style={s.title}>Thank you for your order</h1>
+        <h1 style={s.title}>Thank you for shopping with us!</h1>
         <p style={s.subtitle}>
           Your order has been confirmed and is being prepared with care.
         </p>
@@ -144,7 +144,7 @@ export default function OrderSuccess() {
             <p style={s.noticeText}>
               <strong style={{ color: '#b45309' }}>Rs.49 paid online</strong> · Remaining{" "}
               <strong style={{ color: '#333' }}>Rs.{order.cod_remaining}</strong> to be paid on delivery.
-              A 2% discount has been applied.
+              A 1% discount has been applied.
             </p>
           </div>
         )}

@@ -77,6 +77,20 @@ const addressLines = (a) =>
 const shippableItems = (order) =>
   (order.items || []).filter((i) => i.item_status !== 'QC_FAILED')
 
+// Splits the lumped order-level discount into its two real components:
+// catalog/MRP markdown (baked into item.price) and payment-method discount
+// (2% prepaid / 1% COD), on top of the already-separate special_discount (coupon).
+const splitDiscounts = (order) => {
+  const itemTotal = (order.items || []).reduce((s, i) => s + (i.price || 0) * (i.quantity || 1), 0)
+  const specialDiscount = order.special_discount || 0
+  const catalogDiscount = Math.max(0, (order.mrp || 0) - itemTotal)
+  const paymentDiscount = Math.max(0, itemTotal - specialDiscount - (order.total || 0))
+  return { catalogDiscount, specialDiscount, paymentDiscount }
+}
+
+const itemDisplayPrice = (item) =>
+  item.coupon_discount > 0 ? item.price - Math.round(item.coupon_discount / (item.quantity || 1)) : item.price
+
 // ─── Courier invoice / shipping slip ──────────────────────────────────────────
 const printInvoice = (order) => {
   const win = window.open('', '_blank')
@@ -84,18 +98,20 @@ const printInvoice = (order) => {
 
   // QC-failed items are not shipped, so they're excluded from the slip
   const rows = shippableItems(order)
-    .map(
-      (item) => `
+    .map((item) => {
+      const unit = itemDisplayPrice(item)
+      return `
         <tr>
           <td>${item.name || ''}${item.size ? ` (Size: ${item.size})` : ''}</td>
           <td style="text-align:center">${item.quantity || 1}</td>
-          <td style="text-align:right">₹${Number(item.price).toLocaleString('en-IN')}</td>
-          <td style="text-align:right">₹${Number(item.price * (item.quantity || 1)).toLocaleString('en-IN')}</td>
-        </tr>`,
-    )
+          <td style="text-align:right">₹${Number(unit).toLocaleString('en-IN')}</td>
+          <td style="text-align:right">₹${Number(unit * (item.quantity || 1)).toLocaleString('en-IN')}</td>
+        </tr>`
+    })
     .join('')
 
   const a = order.address || {}
+  const { catalogDiscount, specialDiscount, paymentDiscount } = splitDiscounts(order)
 
   win.document.write(`<!DOCTYPE html>
 <html>
@@ -162,8 +178,9 @@ const printInvoice = (order) => {
 
   <div class="totals">
     <div><span>MRP Total</span><span>₹${Number(order.mrp || order.total).toLocaleString('en-IN')}</span></div>
-    ${order.discount ? `<div style="color:#16a34a"><span>Discount</span><span>-₹${Number(order.discount).toLocaleString('en-IN')}</span></div>` : ''}
-    ${order.special_discount ? `<div style="color:#16a34a"><span>Special Discount</span><span>-₹${Number(order.special_discount).toLocaleString('en-IN')}</span></div>` : ''}
+    ${catalogDiscount ? `<div style="color:#16a34a"><span>MRP Discount</span><span>-₹${Number(catalogDiscount).toLocaleString('en-IN')}</span></div>` : ''}
+    ${specialDiscount ? `<div style="color:#16a34a"><span>Special Discount</span><span>-₹${Number(specialDiscount).toLocaleString('en-IN')}</span></div>` : ''}
+    ${paymentDiscount ? `<div style="color:#16a34a"><span>${order.payment_status === 'PAID' ? 'Prepaid' : 'COD'} Discount</span><span>-₹${Number(paymentDiscount).toLocaleString('en-IN')}</span></div>` : ''}
     ${order.delivery ? `<div><span>Delivery</span><span>₹${Number(order.delivery).toLocaleString('en-IN')}</span></div>` : ''}
     <div class="grand"><span>Total ${order.payment_status === 'PAID' ? '(Paid)' : ''}</span><span>₹${Number(order.total).toLocaleString('en-IN')}</span></div>
   </div>
@@ -893,7 +910,15 @@ function OrderRow({ order, onUpdated, setToast }) {
                     <div className='min-w-0 flex-1'>
                       <p className='text-xs font-semibold text-stone-200 truncate'>{item.name}</p>
                       <p className='text-[11px] text-stone-500'>
-                        {item.size ? `Size ${item.size} · ` : ''}Qty {item.quantity} · {formatINR(item.price)}
+                        {item.size ? `Size ${item.size} · ` : ''}Qty {item.quantity} ·{' '}
+                        {item.coupon_discount > 0 ? (
+                          <>
+                            <span className='line-through text-stone-600 mr-1'>{formatINR(item.price)}</span>
+                            {formatINR(itemDisplayPrice(item))}
+                          </>
+                        ) : (
+                          formatINR(item.price)
+                        )}
                       </p>
                       {failed && (
                         <p className='text-[10px] text-rose-400 mt-0.5'>
@@ -962,6 +987,17 @@ function OrderRow({ order, onUpdated, setToast }) {
                 Status: <b className={order.payment_status === 'PAID' ? 'text-emerald-400' : 'text-amber-400'}>{order.payment_status}</b>
                 {' · '}ETA: {order.estimated_delivery || '—'}
               </p>
+              {(() => {
+                const { catalogDiscount, specialDiscount, paymentDiscount } = splitDiscounts(order)
+                if (!catalogDiscount && !specialDiscount && !paymentDiscount) return null
+                return (
+                  <p className='text-[11px] text-stone-500 mt-1.5 space-y-0.5'>
+                    {catalogDiscount > 0 && <span className='block'>MRP Discount: <b className='text-emerald-400'>-{formatINR(catalogDiscount)}</b></span>}
+                    {specialDiscount > 0 && <span className='block'>Special Discount: <b className='text-emerald-400'>-{formatINR(specialDiscount)}</b></span>}
+                    {paymentDiscount > 0 && <span className='block'>{order.payment_status === 'PAID' ? 'Prepaid' : 'COD'} Discount: <b className='text-emerald-400'>-{formatINR(paymentDiscount)}</b></span>}
+                  </p>
+                )
+              })()}
             </div>
             {order.return_reason && (
               <div>
