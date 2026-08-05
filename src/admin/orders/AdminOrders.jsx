@@ -77,25 +77,77 @@ const addressLines = (a) =>
 const shippableItems = (order) =>
   (order.items || []).filter((i) => i.item_status !== 'QC_FAILED')
 
+// Splits the lumped order-level discount into its two real components:
+// catalog/MRP markdown (baked into item.price) and payment-method discount
+// (2% prepaid / 1% COD), on top of the already-separate special_discount (coupon).
+const splitDiscounts = (order) => {
+  const itemTotal = (order.items || []).reduce((s, i) => s + (i.price || 0) * (i.quantity || 1), 0)
+  const specialDiscount = order.special_discount || 0
+  const catalogDiscount = Math.max(0, (order.mrp || 0) - itemTotal)
+  const paymentDiscount = Math.max(0, itemTotal - specialDiscount - (order.total || 0))
+  return { catalogDiscount, specialDiscount, paymentDiscount }
+}
+
+const itemDisplayPrice = (item) =>
+  item.coupon_discount > 0 ? item.price - Math.round(item.coupon_discount / (item.quantity || 1)) : item.price
+
+// ponytail: seller state hardcoded to match the registered office shown
+// elsewhere (OrderDetailsModal, ContactUs) — promote to a shared constant
+// if a GSTIN/second warehouse state ever gets added.
+const SELLER_STATE = 'Karnataka'
+
+// prices are GST-inclusive, so tax is extracted out of lineTotal rather than added on top
+const gstSplit = (lineTotal, gstRate, isIntraState) => {
+  const taxable = gstRate > 0 ? lineTotal / (1 + gstRate / 100) : lineTotal
+  const gstAmount = lineTotal - taxable
+  return {
+    taxable,
+    cgst: isIntraState ? gstAmount / 2 : 0,
+    sgst: isIntraState ? gstAmount / 2 : 0,
+    igst: isIntraState ? 0 : gstAmount,
+  }
+}
+
 // ─── Courier invoice / shipping slip ──────────────────────────────────────────
 const printInvoice = (order) => {
   const win = window.open('', '_blank')
   if (!win) return
 
+  const a = order.address || {}
+  const { catalogDiscount, specialDiscount, paymentDiscount } = splitDiscounts(order)
+  const isIntraState = (a.state || '').trim().toLowerCase() === SELLER_STATE.toLowerCase()
+
+  let totalCgst = 0
+  let totalSgst = 0
+  let totalIgst = 0
+
   // QC-failed items are not shipped, so they're excluded from the slip
   const rows = shippableItems(order)
-    .map(
-      (item) => `
+    .map((item) => {
+      const unit = itemDisplayPrice(item)
+      const qty = item.quantity || 1
+      const lineTotal = unit * qty
+      const gstRate = item.gst || 0
+      const { cgst, sgst, igst } = gstSplit(lineTotal, gstRate, isIntraState)
+      totalCgst += cgst
+      totalSgst += sgst
+      totalIgst += igst
+      const gstCols = isIntraState
+        ? `<td style="text-align:right">₹${cgst.toFixed(2)}</td><td style="text-align:right">₹${sgst.toFixed(2)}</td>`
+        : `<td style="text-align:right">₹${igst.toFixed(2)}</td>`
+      return `
         <tr>
           <td>${item.name || ''}${item.size ? ` (Size: ${item.size})` : ''}</td>
-          <td style="text-align:center">${item.quantity || 1}</td>
-          <td style="text-align:right">₹${Number(item.price).toLocaleString('en-IN')}</td>
-          <td style="text-align:right">₹${Number(item.price * (item.quantity || 1)).toLocaleString('en-IN')}</td>
-        </tr>`,
-    )
+          <td style="text-align:center">${qty}</td>
+          <td style="text-align:right">₹${Number(unit).toLocaleString('en-IN')}</td>
+          <td style="text-align:right">${gstRate}%</td>
+          ${gstCols}
+          <td style="text-align:right">₹${Number(lineTotal).toLocaleString('en-IN')}</td>
+        </tr>`
+    })
     .join('')
 
-  const a = order.address || {}
+  const gstHeaderCols = isIntraState ? `<th>CGST</th><th>SGST</th>` : `<th>IGST</th>`
 
   win.document.write(`<!DOCTYPE html>
 <html>
@@ -113,7 +165,7 @@ const printInvoice = (order) => {
     .shipto .name { font-size: 17px; font-weight: 700; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th { text-align: left; border-bottom: 2px solid #1d2433; padding: 8px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
-    th:nth-child(2) { text-align: center; } th:nth-child(3), th:nth-child(4) { text-align: right; }
+    th:nth-child(2) { text-align: center; } th:not(:first-child):not(:nth-child(2)) { text-align: right; }
     td { border-bottom: 1px solid #e5e7eb; padding: 8px 6px; }
     .totals { margin-top: 14px; margin-left: auto; width: 240px; }
     .totals div { display: flex; justify-content: space-between; padding: 4px 0; }
@@ -131,7 +183,7 @@ const printInvoice = (order) => {
     <div style="text-align:right">
       <p style="margin:0;font-weight:700;font-size:15px">Order #${order.id}</p>
       <p class="muted" style="margin:4px 0 0">Date: ${order.date}</p>
-      <span class="paid">${order.payment_status === 'PAID' ? 'PREPAID' : order.payment_status}</span>
+      <span class="paid">${order.payment_method === 'PREPAID' ? 'PREPAID' : order.payment_status}</span>
     </div>
   </div>
 
@@ -156,15 +208,19 @@ const printInvoice = (order) => {
   </div>
 
   <table>
-    <thead><tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Amount</th></tr></thead>
+    <thead><tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>GST</th>${gstHeaderCols}<th>Amount</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>
 
   <div class="totals">
     <div><span>MRP Total</span><span>₹${Number(order.mrp || order.total).toLocaleString('en-IN')}</span></div>
-    ${order.discount ? `<div style="color:#16a34a"><span>Discount</span><span>-₹${Number(order.discount).toLocaleString('en-IN')}</span></div>` : ''}
-    ${order.special_discount ? `<div style="color:#16a34a"><span>Special Discount</span><span>-₹${Number(order.special_discount).toLocaleString('en-IN')}</span></div>` : ''}
+    ${catalogDiscount ? `<div style="color:#16a34a"><span>MRP Discount</span><span>-₹${Number(catalogDiscount).toLocaleString('en-IN')}</span></div>` : ''}
+    ${specialDiscount ? `<div style="color:#16a34a"><span>Special Discount</span><span>-₹${Number(specialDiscount).toLocaleString('en-IN')}</span></div>` : ''}
+    ${paymentDiscount ? `<div style="color:#16a34a"><span>${order.payment_method === 'PREPAID' ? 'Prepaid' : 'COD'} Discount</span><span>-₹${Number(paymentDiscount).toLocaleString('en-IN')}</span></div>` : ''}
     ${order.delivery ? `<div><span>Delivery</span><span>₹${Number(order.delivery).toLocaleString('en-IN')}</span></div>` : ''}
+    ${isIntraState
+      ? `<div><span>CGST</span><span>₹${totalCgst.toFixed(2)}</span></div><div><span>SGST</span><span>₹${totalSgst.toFixed(2)}</span></div>`
+      : `<div><span>IGST</span><span>₹${totalIgst.toFixed(2)}</span></div>`}
     <div class="grand"><span>Total ${order.payment_status === 'PAID' ? '(Paid)' : ''}</span><span>₹${Number(order.total).toLocaleString('en-IN')}</span></div>
   </div>
 
@@ -893,7 +949,15 @@ function OrderRow({ order, onUpdated, setToast }) {
                     <div className='min-w-0 flex-1'>
                       <p className='text-xs font-semibold text-stone-200 truncate'>{item.name}</p>
                       <p className='text-[11px] text-stone-500'>
-                        {item.size ? `Size ${item.size} · ` : ''}Qty {item.quantity} · {formatINR(item.price)}
+                        {item.size ? `Size ${item.size} · ` : ''}Qty {item.quantity} ·{' '}
+                        {item.coupon_discount > 0 ? (
+                          <>
+                            <span className='line-through text-stone-600 mr-1'>{formatINR(item.price)}</span>
+                            {formatINR(itemDisplayPrice(item))}
+                          </>
+                        ) : (
+                          formatINR(item.price)
+                        )}
                       </p>
                       {failed && (
                         <p className='text-[10px] text-rose-400 mt-0.5'>
@@ -962,6 +1026,17 @@ function OrderRow({ order, onUpdated, setToast }) {
                 Status: <b className={order.payment_status === 'PAID' ? 'text-emerald-400' : 'text-amber-400'}>{order.payment_status}</b>
                 {' · '}ETA: {order.estimated_delivery || '—'}
               </p>
+              {(() => {
+                const { catalogDiscount, specialDiscount, paymentDiscount } = splitDiscounts(order)
+                if (!catalogDiscount && !specialDiscount && !paymentDiscount) return null
+                return (
+                  <p className='text-[11px] text-stone-500 mt-1.5 space-y-0.5'>
+                    {catalogDiscount > 0 && <span className='block'>MRP Discount: <b className='text-emerald-400'>-{formatINR(catalogDiscount)}</b></span>}
+                    {specialDiscount > 0 && <span className='block'>Special Discount: <b className='text-emerald-400'>-{formatINR(specialDiscount)}</b></span>}
+                    {paymentDiscount > 0 && <span className='block'>{order.payment_method === 'PREPAID' ? 'Prepaid' : 'COD'} Discount: <b className='text-emerald-400'>-{formatINR(paymentDiscount)}</b></span>}
+                  </p>
+                )
+              })()}
             </div>
             {order.return_reason && (
               <div>

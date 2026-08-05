@@ -504,6 +504,10 @@ const ProductUpload = () => {
   const [discountType, setDiscountType] = useState('PERCENTAGE')
   const [discountValue, setDiscountValue] = useState('10')
 
+  // Product videos (YouTube/direct URLs) — shown on PDP only when set
+  const [videoUrl1, setVideoUrl1] = useState('')
+  const [videoUrl2, setVideoUrl2] = useState('')
+
   // Variants
   const [variants, setVariants] = useState([emptyVariant()])
 
@@ -770,7 +774,8 @@ const ProductUpload = () => {
       category_id: categoryId,
       category_name: categories.find((c) => c.category_id === categoryId)?.name,
     },
-    description: isSaree
+    description: {
+      ...(isSaree
       ? {
           Material: material,
           Color: sareeColor,
@@ -961,7 +966,10 @@ const ProductUpload = () => {
           'Bottom Type': bottomType,
           Occasion: occasion,
           product_blurb: description,
-        },
+        }),
+      ...(videoUrl1.trim() && { 'Video URL 1': videoUrl1.trim() }),
+      ...(videoUrl2.trim() && { 'Video URL 2': videoUrl2.trim() }),
+    },
     pricing: {
       mrp: parseFloat(mrp) || 0,
       sale_price: parseFloat(salePrice) || 0,
@@ -1974,6 +1982,29 @@ const ProductUpload = () => {
                 >
                   <Plus size={16} /> Add Another Color Variant
                 </button>
+              </Section>
+
+              <Section
+                icon={Image}
+                title='Product Videos'
+                subtitle='Optional — paste up to 2 video URLs to show on the product page'
+              >
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-5'>
+                  <Field label='Video URL 1'>
+                    <Input
+                      value={videoUrl1}
+                      onChange={setVideoUrl1}
+                      placeholder='https://youtube.com/watch?v=...'
+                    />
+                  </Field>
+                  <Field label='Video URL 2'>
+                    <Input
+                      value={videoUrl2}
+                      onChange={setVideoUrl2}
+                      placeholder='https://youtube.com/watch?v=...'
+                    />
+                  </Field>
+                </div>
               </Section>
 
               <div className='flex gap-3 md:hidden pb-4'>

@@ -21,7 +21,7 @@ async function fetchProductCard(id) {
     id,
     title: raw.title,
     brand: raw.brand?.name ?? '',
-    price: raw.pricing?.selling_price ?? raw.pricing?.mrp ?? 0,
+    price: raw.pricing?.sale_price ?? raw.pricing?.mrp ?? 0,
     mrp: raw.pricing?.mrp ?? 0,
     discount: raw.pricing?.discounts?.discount_percent ?? 0,
     image: variant?.main_image ? `https://cdn.vaarria.com/app/images/${variant.main_image}` : '',

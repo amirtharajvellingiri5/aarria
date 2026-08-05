@@ -54,21 +54,67 @@ const openWhatsAppSupport = (orderId) => {
   window.open(`https://wa.me/${SUPPORT_WHATSAPP}?text=${text}`, '_blank')
 }
 
+const splitDiscounts = (order) => {
+  const itemTotal = (order.items || []).reduce((s, i) => s + (i.price || 0) * (i.quantity || 1), 0)
+  const specialDiscount = order.special_discount || 0
+  const catalogDiscount = Math.max(0, (order.mrp || 0) - itemTotal)
+  const paymentDiscount = Math.max(0, itemTotal - specialDiscount - (order.total || 0))
+  return { catalogDiscount, specialDiscount, paymentDiscount }
+}
+
+// ponytail: seller state hardcoded to match the registered office shown
+// elsewhere (OrderDetailsModal, ContactUs) — promote to a shared constant
+// if a GSTIN/second warehouse state ever gets added.
+const SELLER_STATE = 'Karnataka'
+
+// prices are GST-inclusive, so tax is extracted out of lineTotal rather than added on top
+const gstSplit = (lineTotal, gstRate, isIntraState) => {
+  const taxable = gstRate > 0 ? lineTotal / (1 + gstRate / 100) : lineTotal
+  const gstAmount = lineTotal - taxable
+  return {
+    taxable,
+    cgst: isIntraState ? gstAmount / 2 : 0,
+    sgst: isIntraState ? gstAmount / 2 : 0,
+    igst: isIntraState ? 0 : gstAmount,
+  }
+}
+
 const generateInvoice = (order) => {
   const win = window.open('', '_blank')
   if (!win) return
 
+  const { catalogDiscount, specialDiscount, paymentDiscount } = splitDiscounts(order)
+  const isIntraState = (order.address?.state || '').trim().toLowerCase() === SELLER_STATE.toLowerCase()
+
+  let totalCgst = 0
+  let totalSgst = 0
+  let totalIgst = 0
+
   const rows = order.items
-    .map(
-      (item) => `
+    .map((item) => {
+      const qty = item.quantity || 1
+      const lineTotal = item.price * qty - (item.coupon_discount || 0)
+      const gstRate = item.gst || 0
+      const { cgst, sgst, igst } = gstSplit(lineTotal, gstRate, isIntraState)
+      totalCgst += cgst
+      totalSgst += sgst
+      totalIgst += igst
+      const gstCols = isIntraState
+        ? `<td style="text-align:right">₹${cgst.toFixed(2)}</td><td style="text-align:right">₹${sgst.toFixed(2)}</td>`
+        : `<td style="text-align:right">₹${igst.toFixed(2)}</td>`
+      return `
         <tr>
           <td>${item.name || ''}${item.size ? ` (Size: ${item.size})` : ''}</td>
-          <td style="text-align:center">${item.quantity || 1}</td>
+          <td style="text-align:center">${qty}</td>
           <td style="text-align:right">₹${Number(item.price).toLocaleString('en-IN')}</td>
-          <td style="text-align:right">₹${Number(item.price * (item.quantity || 1)).toLocaleString('en-IN')}</td>
-        </tr>`,
-    )
+          <td style="text-align:right">${gstRate}%</td>
+          ${gstCols}
+          <td style="text-align:right">₹${Number(lineTotal).toLocaleString('en-IN')}</td>
+        </tr>`
+    })
     .join('')
+
+  const gstHeaderCols = isIntraState ? `<th>CGST</th><th>SGST</th>` : `<th>IGST</th>`
 
   win.document.write(`<!DOCTYPE html>
 <html>
@@ -82,7 +128,7 @@ const generateInvoice = (order) => {
     table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 13px; }
     th { text-align: left; border-bottom: 2px solid #050C1C; padding: 8px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
     th:nth-child(2) { text-align: center; }
-    th:nth-child(3), th:nth-child(4) { text-align: right; }
+    th:not(:first-child):not(:nth-child(2)) { text-align: right; }
     td { border-bottom: 1px solid #eee; padding: 8px 6px; }
     .totals { margin-top: 16px; margin-left: auto; width: 260px; font-size: 13px; }
     .totals div { display: flex; justify-content: space-between; padding: 4px 0; }
@@ -110,16 +156,20 @@ const generateInvoice = (order) => {
 
   <table>
     <thead>
-      <tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Amount</th></tr>
+      <tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>GST</th>${gstHeaderCols}<th>Amount</th></tr>
     </thead>
     <tbody>${rows}</tbody>
   </table>
 
   <div class="totals">
     <div><span>MRP Total</span><span>₹${Number(order.mrp).toLocaleString('en-IN')}</span></div>
-    <div style="color:#16a34a"><span>Discount</span><span>-₹${Number(order.discount).toLocaleString('en-IN')}</span></div>
-    ${order.special_discount ? `<div style="color:#16a34a"><span>Special Discount</span><span>-₹${Number(order.special_discount).toLocaleString('en-IN')}</span></div>` : ''}
+    ${catalogDiscount ? `<div style="color:#16a34a"><span>MRP Discount</span><span>-₹${Number(catalogDiscount).toLocaleString('en-IN')}</span></div>` : ''}
+    ${specialDiscount ? `<div style="color:#16a34a"><span>Special Discount</span><span>-₹${Number(specialDiscount).toLocaleString('en-IN')}</span></div>` : ''}
+    ${paymentDiscount ? `<div style="color:#16a34a"><span>${order.payment_method === 'PREPAID' ? 'Prepaid' : 'COD'} Discount</span><span>-₹${Number(paymentDiscount).toLocaleString('en-IN')}</span></div>` : ''}
     <div><span>Delivery</span><span>${order.delivery === 0 ? 'FREE' : `₹${order.delivery}`}</span></div>
+    ${isIntraState
+      ? `<div><span>CGST</span><span>₹${totalCgst.toFixed(2)}</span></div><div><span>SGST</span><span>₹${totalSgst.toFixed(2)}</span></div>`
+      : `<div><span>IGST</span><span>₹${totalIgst.toFixed(2)}</span></div>`}
     <div class="grand"><span>Total Paid</span><span>₹${Number(order.total).toLocaleString('en-IN')}</span></div>
   </div>
 
@@ -962,8 +1012,25 @@ function OrderCard({ order }) {
                 {item.name}
               </p>
               <p style={{ fontSize: 11, color: '#444', margin: 0 }}>
-                Size: <b>{item.size}</b> · <span style={{ color: GOLD, fontWeight: 600 }}>₹{item.price.toLocaleString('en-IN')}</span>
+                Size: <b>{item.size}</b> ·{' '}
+                {item.coupon_discount > 0 ? (
+                  <>
+                    <span style={{ color: '#94969f', textDecoration: 'line-through', marginRight: 4 }}>₹{item.price.toLocaleString('en-IN')}</span>
+                    <span style={{ color: GOLD, fontWeight: 600 }}>₹{(item.price - Math.round(item.coupon_discount / item.quantity)).toLocaleString('en-IN')}</span>
+                  </>
+                ) : (
+                  <span style={{ color: GOLD, fontWeight: 600 }}>₹{item.price.toLocaleString('en-IN')}</span>
+                )}
               </p>
+              {item.coupon_discount > 0 && (
+                <span style={{
+                  display: 'inline-block', marginTop: 3, fontSize: 10, fontWeight: 700,
+                  color: '#16a34a', background: '#dcfce7', border: '1px solid #bbf7d0',
+                  borderRadius: 10, padding: '1px 8px',
+                }}>
+                  Offer Applied
+                </span>
+              )}
               {item.item_status === 'QC_FAILED' && (
                 <div style={{ marginTop: 4 }}>
                   <span style={{
@@ -1125,11 +1192,16 @@ function OrderCard({ order }) {
             <p style={{ fontSize: 10, color: '#aaa', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>
               Price Details
             </p>
-            {[
-              { label: 'MRP Total', value: `₹${order.mrp.toLocaleString('en-IN')}` },
-              { label: 'Discount', value: `-₹${order.discount.toLocaleString('en-IN')}`, color: '#16a34a' },
-              { label: 'Delivery', value: order.delivery === 0 ? 'FREE' : `₹${order.delivery}`, color: order.delivery === 0 ? '#16a34a' : undefined },
-            ].map(row => (
+            {(() => {
+              const { catalogDiscount, specialDiscount, paymentDiscount } = splitDiscounts(order)
+              return [
+                { label: 'MRP Total', value: `₹${order.mrp.toLocaleString('en-IN')}` },
+                ...(catalogDiscount ? [{ label: 'MRP Discount', value: `-₹${catalogDiscount.toLocaleString('en-IN')}`, color: '#16a34a' }] : []),
+                ...(specialDiscount ? [{ label: 'Special Discount', value: `-₹${specialDiscount.toLocaleString('en-IN')}`, color: '#16a34a' }] : []),
+                ...(paymentDiscount ? [{ label: `${order.payment_method === 'PREPAID' ? 'Prepaid' : 'COD'} Discount`, value: `-₹${paymentDiscount.toLocaleString('en-IN')}`, color: '#16a34a' }] : []),
+                { label: 'Delivery', value: order.delivery === 0 ? 'FREE' : `₹${order.delivery}`, color: order.delivery === 0 ? '#16a34a' : undefined },
+              ]
+            })().map(row => (
               <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
                 <span style={{ fontSize: 12, color: '#666' }}>{row.label}</span>
                 <span style={{ fontSize: 12, fontWeight: 500, color: row.color || '#444' }}>{row.value}</span>
@@ -1147,7 +1219,7 @@ function OrderCard({ order }) {
                     </div>
                     <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#dcfce7', color: '#16a34a', border: '1px solid #bbf7d0' }}>✓ Paid Online</span>
-                      <span style={{ fontSize: 11, color: '#16a34a' }}>5% discount applied</span>
+                      <span style={{ fontSize: 11, color: '#16a34a' }}>2% discount applied</span>
                     </div>
                   </>
                 )
@@ -1161,13 +1233,13 @@ function OrderCard({ order }) {
                     <div style={{ marginTop: 8, background: '#fffdf5', border: `1px solid ${GOLD}44`, borderRadius: 8, padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 4 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: 12, color: '#666' }}>Paid online</span>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: '#16a34a' }}>Rs.49</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: '#16a34a' }}>Rs.{(order.paid_online ?? 49).toLocaleString('en-IN')}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: 12, color: '#666' }}>To pay on delivery</span>
                         <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>Rs.{codRemaining.toLocaleString('en-IN')}</span>
                       </div>
-                      <div style={{ fontSize: 10, color: '#888', marginTop: 2 }}>2% discount applied on delivery amount</div>
+                      <div style={{ fontSize: 10, color: '#888', marginTop: 2 }}>1% discount applied on delivery amount</div>
                     </div>
                   </>
                 )

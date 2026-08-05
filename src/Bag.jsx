@@ -422,7 +422,7 @@ function PinBar() {
   )
 }
 function ItemCard({ item }) {
-  const { items, toggleSelected, setItems } = useBagStore()
+  const { items, toggleSelected, setItems, appliedCouponIds } = useBagStore()
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -606,15 +606,34 @@ function ItemCard({ item }) {
             </div>
           </div>
 
-          <div style={styles.pricingRow}>
-            <span style={styles.priceFinal}>₹{item.price * item.qty}</span>
+          {(() => {
+            const lineTotal = item.price * item.qty
+            const hasCoupon = item.couponDiscount > 0 && appliedCouponIds.has(item.id)
+            const couponAmount = hasCoupon
+              ? item.discountType === 'PERCENTAGE'
+                ? Math.floor((lineTotal * item.couponDiscount) / 100)
+                : item.couponDiscount * item.qty
+              : 0
+            return (
+              <div style={styles.pricingRow}>
+                {hasCoupon ? (
+                  <>
+                    <span style={styles.priceFinal}>₹{lineTotal - couponAmount}</span>
+                    <span style={styles.priceMrp}>₹{item.mrp}</span>
+                    <span style={{ ...styles.priceOff, textDecoration: 'line-through' }}>₹{lineTotal}</span>
+                  </>
+                ) : (
+                  <>
+                    <span style={styles.priceFinal}>₹{lineTotal}</span>
+                    <span style={styles.priceMrp}>₹{item.mrp}</span>
+                    <span style={styles.priceOff}>₹{item.mrp - item.price} OFF</span>
+                  </>
+                )}
+              </div>
+            )
+          })()}
 
-            <span style={styles.priceMrp}>₹{item.mrp}</span>
-
-            <span style={styles.priceOff}>₹{item.mrp - item.price} OFF</span>
-          </div>
-
-          {item.couponDiscount > 0 && (
+          {item.couponDiscount > 0 && appliedCouponIds.has(item.id) && (
   <div style={styles.couponLine}>
     <Tag size={11} style={{ marginRight: 4 }} />
     Coupon Discount:{' '}
@@ -827,9 +846,9 @@ function CouponPanel() {
   )
 }
 function PaymentMethodSelector({ value, onChange, total, disabled }) {
-  const prepaidFinal = Math.round(total * 0.95)
+  const prepaidFinal = Math.round(total * 0.98)
   const saved = total - prepaidFinal
-  const codFinal = Math.round(total * 0.98)
+  const codFinal = Math.round(total * 0.99)
   const codRemaining = codFinal - 49
 
   return (
@@ -863,7 +882,7 @@ function PaymentMethodSelector({ value, onChange, total, disabled }) {
                   fontSize: 9, fontWeight: 800, letterSpacing: 0.4,
                   color: '#fff', background: '#2e7d32',
                   borderRadius: 3, padding: '2px 6px',
-                }}>SAVE 5%</span>
+                }}>SAVE 2%</span>
               </div>
               <div style={{ fontSize: 11, color: value === 'prepaid' ? 'rgba(201,168,76,0.7)' : '#888', marginTop: 2 }}>
                 UPI · Card · Net Banking
@@ -903,7 +922,7 @@ function PaymentMethodSelector({ value, onChange, total, disabled }) {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>Pay ₹49 Now + COD</span>
-              <span style={{ fontSize: 9, fontWeight: 700, color: '#2e7d32', background: '#e8f5e9', borderRadius: 3, padding: '1px 5px' }}>2% OFF</span>
+              <span style={{ fontSize: 9, fontWeight: 700, color: '#2e7d32', background: '#e8f5e9', borderRadius: 3, padding: '1px 5px' }}>1% OFF</span>
             </div>
             <div style={{ fontSize: 11, color: '#888', marginTop: 1 }}>
               ₹49 online · ₹{codRemaining.toLocaleString()} on delivery
@@ -983,8 +1002,8 @@ function PricePanel({ onNeedAuth, triggerPay, onTriggerConsumed, authReady }) {
     const customer = authCustomer
 
     const baseTotal = Math.max(0, total)
-    const prepaidFinal = Math.round(baseTotal * 0.95)
-    const codFinal = Math.round(baseTotal * 0.98)
+    const prepaidFinal = Math.round(baseTotal * 0.98)
+    const codFinal = Math.round(baseTotal * 0.99)
 
     let selectedAddress = JSON.parse(localStorage.getItem('selected_address') || 'null')
     if (!selectedAddress) {
@@ -1020,6 +1039,7 @@ function PricePanel({ onNeedAuth, triggerPay, onTriggerConsumed, authReady }) {
 
     const clearBagAndNavigate = async (order) => {
       setPaymentLoading(false)
+      setPaymentError('')
       navigate('/order-success', { state: order })
       const { removeItem } = useBagStore.getState()
       await Promise.allSettled(
