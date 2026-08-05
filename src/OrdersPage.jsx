@@ -1233,7 +1233,7 @@ function OrderCard({ order }) {
                     <div style={{ marginTop: 8, background: '#fffdf5', border: `1px solid ${GOLD}44`, borderRadius: 8, padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 4 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: 12, color: '#666' }}>Paid online</span>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: '#16a34a' }}>Rs.49</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: '#16a34a' }}>Rs.{(order.paid_online ?? 49).toLocaleString('en-IN')}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: 12, color: '#666' }}>To pay on delivery</span>

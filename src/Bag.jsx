@@ -1039,6 +1039,7 @@ function PricePanel({ onNeedAuth, triggerPay, onTriggerConsumed, authReady }) {
 
     const clearBagAndNavigate = async (order) => {
       setPaymentLoading(false)
+      setPaymentError('')
       navigate('/order-success', { state: order })
       const { removeItem } = useBagStore.getState()
       await Promise.allSettled(

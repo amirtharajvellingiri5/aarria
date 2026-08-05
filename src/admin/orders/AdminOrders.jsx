@@ -183,7 +183,7 @@ const printInvoice = (order) => {
     <div style="text-align:right">
       <p style="margin:0;font-weight:700;font-size:15px">Order #${order.id}</p>
       <p class="muted" style="margin:4px 0 0">Date: ${order.date}</p>
-      <span class="paid">${order.payment_status === 'PAID' ? 'PREPAID' : order.payment_status}</span>
+      <span class="paid">${order.payment_method === 'PREPAID' ? 'PREPAID' : order.payment_status}</span>
     </div>
   </div>
 
@@ -216,7 +216,7 @@ const printInvoice = (order) => {
     <div><span>MRP Total</span><span>₹${Number(order.mrp || order.total).toLocaleString('en-IN')}</span></div>
     ${catalogDiscount ? `<div style="color:#16a34a"><span>MRP Discount</span><span>-₹${Number(catalogDiscount).toLocaleString('en-IN')}</span></div>` : ''}
     ${specialDiscount ? `<div style="color:#16a34a"><span>Special Discount</span><span>-₹${Number(specialDiscount).toLocaleString('en-IN')}</span></div>` : ''}
-    ${paymentDiscount ? `<div style="color:#16a34a"><span>${order.payment_status === 'PAID' ? 'Prepaid' : 'COD'} Discount</span><span>-₹${Number(paymentDiscount).toLocaleString('en-IN')}</span></div>` : ''}
+    ${paymentDiscount ? `<div style="color:#16a34a"><span>${order.payment_method === 'PREPAID' ? 'Prepaid' : 'COD'} Discount</span><span>-₹${Number(paymentDiscount).toLocaleString('en-IN')}</span></div>` : ''}
     ${order.delivery ? `<div><span>Delivery</span><span>₹${Number(order.delivery).toLocaleString('en-IN')}</span></div>` : ''}
     ${isIntraState
       ? `<div><span>CGST</span><span>₹${totalCgst.toFixed(2)}</span></div><div><span>SGST</span><span>₹${totalSgst.toFixed(2)}</span></div>`
@@ -1033,7 +1033,7 @@ function OrderRow({ order, onUpdated, setToast }) {
                   <p className='text-[11px] text-stone-500 mt-1.5 space-y-0.5'>
                     {catalogDiscount > 0 && <span className='block'>MRP Discount: <b className='text-emerald-400'>-{formatINR(catalogDiscount)}</b></span>}
                     {specialDiscount > 0 && <span className='block'>Special Discount: <b className='text-emerald-400'>-{formatINR(specialDiscount)}</b></span>}
-                    {paymentDiscount > 0 && <span className='block'>{order.payment_status === 'PAID' ? 'Prepaid' : 'COD'} Discount: <b className='text-emerald-400'>-{formatINR(paymentDiscount)}</b></span>}
+                    {paymentDiscount > 0 && <span className='block'>{order.payment_method === 'PREPAID' ? 'Prepaid' : 'COD'} Discount: <b className='text-emerald-400'>-{formatINR(paymentDiscount)}</b></span>}
                   </p>
                 )
               })()}
