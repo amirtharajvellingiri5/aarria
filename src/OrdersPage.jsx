@@ -62,25 +62,59 @@ const splitDiscounts = (order) => {
   return { catalogDiscount, specialDiscount, paymentDiscount }
 }
 
+// ponytail: seller state hardcoded to match the registered office shown
+// elsewhere (OrderDetailsModal, ContactUs) — promote to a shared constant
+// if a GSTIN/second warehouse state ever gets added.
+const SELLER_STATE = 'Karnataka'
+
+// prices are GST-inclusive, so tax is extracted out of lineTotal rather than added on top
+const gstSplit = (lineTotal, gstRate, isIntraState) => {
+  const taxable = gstRate > 0 ? lineTotal / (1 + gstRate / 100) : lineTotal
+  const gstAmount = lineTotal - taxable
+  return {
+    taxable,
+    cgst: isIntraState ? gstAmount / 2 : 0,
+    sgst: isIntraState ? gstAmount / 2 : 0,
+    igst: isIntraState ? 0 : gstAmount,
+  }
+}
+
 const generateInvoice = (order) => {
   const win = window.open('', '_blank')
   if (!win) return
 
   const { catalogDiscount, specialDiscount, paymentDiscount } = splitDiscounts(order)
+  const isIntraState = (order.address?.state || '').trim().toLowerCase() === SELLER_STATE.toLowerCase()
+
+  let totalCgst = 0
+  let totalSgst = 0
+  let totalIgst = 0
 
   const rows = order.items
     .map((item) => {
       const qty = item.quantity || 1
       const lineTotal = item.price * qty - (item.coupon_discount || 0)
+      const gstRate = item.gst || 0
+      const { cgst, sgst, igst } = gstSplit(lineTotal, gstRate, isIntraState)
+      totalCgst += cgst
+      totalSgst += sgst
+      totalIgst += igst
+      const gstCols = isIntraState
+        ? `<td style="text-align:right">₹${cgst.toFixed(2)}</td><td style="text-align:right">₹${sgst.toFixed(2)}</td>`
+        : `<td style="text-align:right">₹${igst.toFixed(2)}</td>`
       return `
         <tr>
           <td>${item.name || ''}${item.size ? ` (Size: ${item.size})` : ''}</td>
           <td style="text-align:center">${qty}</td>
           <td style="text-align:right">₹${Number(item.price).toLocaleString('en-IN')}</td>
+          <td style="text-align:right">${gstRate}%</td>
+          ${gstCols}
           <td style="text-align:right">₹${Number(lineTotal).toLocaleString('en-IN')}</td>
         </tr>`
     })
     .join('')
+
+  const gstHeaderCols = isIntraState ? `<th>CGST</th><th>SGST</th>` : `<th>IGST</th>`
 
   win.document.write(`<!DOCTYPE html>
 <html>
@@ -94,7 +128,7 @@ const generateInvoice = (order) => {
     table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 13px; }
     th { text-align: left; border-bottom: 2px solid #050C1C; padding: 8px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
     th:nth-child(2) { text-align: center; }
-    th:nth-child(3), th:nth-child(4) { text-align: right; }
+    th:not(:first-child):not(:nth-child(2)) { text-align: right; }
     td { border-bottom: 1px solid #eee; padding: 8px 6px; }
     .totals { margin-top: 16px; margin-left: auto; width: 260px; font-size: 13px; }
     .totals div { display: flex; justify-content: space-between; padding: 4px 0; }
@@ -122,7 +156,7 @@ const generateInvoice = (order) => {
 
   <table>
     <thead>
-      <tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Amount</th></tr>
+      <tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>GST</th>${gstHeaderCols}<th>Amount</th></tr>
     </thead>
     <tbody>${rows}</tbody>
   </table>
@@ -133,6 +167,9 @@ const generateInvoice = (order) => {
     ${specialDiscount ? `<div style="color:#16a34a"><span>Special Discount</span><span>-₹${Number(specialDiscount).toLocaleString('en-IN')}</span></div>` : ''}
     ${paymentDiscount ? `<div style="color:#16a34a"><span>${order.payment_method === 'PREPAID' ? 'Prepaid' : 'COD'} Discount</span><span>-₹${Number(paymentDiscount).toLocaleString('en-IN')}</span></div>` : ''}
     <div><span>Delivery</span><span>${order.delivery === 0 ? 'FREE' : `₹${order.delivery}`}</span></div>
+    ${isIntraState
+      ? `<div><span>CGST</span><span>₹${totalCgst.toFixed(2)}</span></div><div><span>SGST</span><span>₹${totalSgst.toFixed(2)}</span></div>`
+      : `<div><span>IGST</span><span>₹${totalIgst.toFixed(2)}</span></div>`}
     <div class="grand"><span>Total Paid</span><span>₹${Number(order.total).toLocaleString('en-IN')}</span></div>
   </div>
 
