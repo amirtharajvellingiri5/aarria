@@ -1045,7 +1045,7 @@ function PricePanel({ onNeedAuth, triggerPay, onTriggerConsumed, authReady }) {
       quantity: item.qty,
       unit_price: item.price,
       size: item.size,
-      color: item.colorName || null,
+      color: item.colorName ?? null,
       image: item.image || null,
       bag_id: item.id,
       coupon_applied: appliedCouponIds.has(item.id) && item.couponDiscount > 0,

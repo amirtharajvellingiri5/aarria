@@ -139,6 +139,7 @@ const printInvoice = (order) => {
         <tr>
           <td>${item.name || ''}${item.size ? ` (Size: ${item.size})` : ''}</td>
           <td style="text-align:center">${qty}</td>
+          <td style="text-align:right">₹${Number(item.mrp || unit).toLocaleString('en-IN')}</td>
           <td style="text-align:right">₹${Number(unit).toLocaleString('en-IN')}</td>
           <td style="text-align:right">${gstRate}%</td>
           ${gstCols}
@@ -208,7 +209,7 @@ const printInvoice = (order) => {
   </div>
 
   <table>
-    <thead><tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>GST</th>${gstHeaderCols}<th>Amount</th></tr></thead>
+    <thead><tr><th>Item</th><th>Qty</th><th>MRP</th><th>Unit Price</th><th>GST</th>${gstHeaderCols}<th>Amount</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>
 
