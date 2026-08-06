@@ -16,7 +16,6 @@ import {
   Play,
   Gift,
   CreditCard,
-  ArrowLeftRight,
   RotateCcw,
   Wallet,
 } from 'lucide-react'
@@ -1910,7 +1909,6 @@ export default function ProductDetail() {
             {/* ── Reassurance strip ── */}
             <div style={{ display: 'flex', gap: 0, marginBottom: 12, border: '1px solid #e8e0d0', borderRadius: 8, overflow: 'hidden', background: '#fafaf8' }}>
               {[
-                { icon: <ArrowLeftRight size={15} color='#C9A84C' />, label: "Wrong size? We'll swap it" },
                 { icon: <Wallet size={15} color='#C9A84C' />, label: 'Pay when it arrives' },
                 { icon: <RotateCcw size={15} color='#C9A84C' />, label: "Don't love it? Return it — no questions asked" },
               ].map((item, i) => (

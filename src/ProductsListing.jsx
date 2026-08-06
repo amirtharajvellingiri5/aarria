@@ -25,7 +25,6 @@ import WishlistLoginModal from './modals/WishlistLoginModal'
 import logo from './assets/logo.jpg'
 
 import { COLOR_MAP, formatColorLabel } from './constants/colors'
-import { MATERIALS } from './constants/materials'
 import { PRODUCT_CATEGORY_NAMES, ADMIN_CATEGORIES } from './utils/categories'
 import { INVENTORY_URL } from './config'
 
@@ -149,14 +148,12 @@ const fetchProductsByCategory = async (
     params.append('size', size)
   })
 
-  // Neck Type
-  activeFilters.neckType?.forEach((neckType) => {
-    params.append('neck_type', neckType)
-  })
-
-  // Sleeve Length
-  activeFilters.sleeveLength?.forEach((sleeveLength) => {
-    params.append('sleeve_length', sleeveLength)
+  // Generic per-category attributes (Neck Design, Saree Border, ...) — any
+  // filter key beyond the fixed ones below is sent as attr=Key:Value.
+  const KNOWN_FILTER_KEYS = new Set(['fabric', 'color', 'size', 'priceRange'])
+  Object.entries(activeFilters).forEach(([key, values]) => {
+    if (KNOWN_FILTER_KEYS.has(key)) return
+    values?.forEach((value) => params.append('attr', `${key}:${value}`))
   })
   // Price Range
   if (activeFilters.priceRange?.length) {
@@ -216,8 +213,7 @@ const fetchProductsByCategory = async (
     fabric: item.fabric || 'Cotton',
     color: item.colors?.[0] || 'Red',
     size: item.sizes,
-    neckType: undefined,
-    sleeveLength: undefined,
+    attributes: item.attributes || {},
     bgColor: 'bg-gradient-to-br from-pink-200 to-red-300',
     description: item.title || item.name || '',
   }))
@@ -349,14 +345,6 @@ const FilterSection = ({
 
 // ── Filter Sidebar ─────────────────────────────────────────────────────────────
 
-// Filters beyond Category/Color/Size/Price/Fabric render here, in order, so
-// adding a new one (e.g. from a future product field) is a one-line entry
-// instead of a new hardcoded JSX block.
-const EXTRA_FILTERS = [
-  { key: 'neckType', title: 'Neck Type', itemsKey: 'neckTypes' },
-  { key: 'sleeveLength', title: 'Sleeve Length', itemsKey: 'sleeveLengths' },
-]
-
 const FilterSidebar = ({
   filters,
   selectedFilters,
@@ -371,11 +359,12 @@ const FilterSidebar = ({
     color: true,
     size: true,
     price: true,
-    ...Object.fromEntries(EXTRA_FILTERS.map((f) => [f.key, true])),
   })
 
+  // Category-specific attributes (Neck Design, Saree Border, ...) aren't
+  // known ahead of time, so they default open the first time they're seen.
   const toggleSection = (section) => {
-    setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }))
+    setExpandedSections((prev) => ({ ...prev, [section]: !(prev[section] ?? true) }))
   }
 
   return (
@@ -446,12 +435,12 @@ const FilterSidebar = ({
         selectedFilters={selectedFilters} onFilterChange={onFilterChange}
         currentSlug={currentSlug}
       />
-      {EXTRA_FILTERS.map(({ key, title, itemsKey }) =>
-        filters[itemsKey]?.length ? (
+      {Object.entries(filters.attributes || {}).map(([key, values]) =>
+        values?.length ? (
           <FilterSection
             key={key}
-            title={title} items={filters[itemsKey]} filterKey={key}
-            expanded={expandedSections[key]} onToggle={toggleSection}
+            title={key} items={values} filterKey={key}
+            expanded={expandedSections[key] ?? true} onToggle={toggleSection}
             selectedFilters={selectedFilters} onFilterChange={onFilterChange}
             currentSlug={currentSlug}
           />
@@ -753,8 +742,6 @@ const ListingPage = () => {
     fabric: [],
     color: [],
     size: [],
-    neckType: [],
-    sleeveLength: [],
     priceRange: [],
   })
   const [sortBy, setSortBy] = useState('price-low')
@@ -801,15 +788,13 @@ const ListingPage = () => {
         slug: c.slug,
       })),
 
-      fabrics: availableFilters?.fabrics?.length ? availableFilters.fabrics : MATERIALS,
+      fabrics: availableFilters?.fabrics || [],
 
       colors: availableFilters?.colors || [],
 
       sizes: availableFilters?.sizes || [],
 
-      neckTypes: availableFilters?.neck_types || [],
-
-      sleeveLengths: availableFilters?.sleeve_lengths || [],
+      attributes: availableFilters?.attributes || {},
 
       priceRanges: [
         { label: 'Under ₹2000', min: 0, max: 2000 },
@@ -862,8 +847,6 @@ const ListingPage = () => {
       fabric: [],
       color: [],
       size: [],
-      neckType: [],
-      sleeveLength: [],
       priceRange: [],
     })
 
