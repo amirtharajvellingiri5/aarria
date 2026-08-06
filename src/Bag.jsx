@@ -428,6 +428,10 @@ function ItemCard({ item }) {
   const [deleting, setDeleting] = useState(false)
 
   const updateBagQuantity = async (delta) => {
+    if (item.soldOut) {
+      return
+    }
+
     const newQty = item.qty + delta
 
     if (newQty < 1) {
@@ -519,20 +523,22 @@ function ItemCard({ item }) {
       <div
         style={{
           ...styles.itemCard,
-          opacity: item.selected ? 1 : 0.55,
+          opacity: item.soldOut ? 0.55 : item.selected ? 1 : 0.55,
         }}
       >
         {/* Checkbox */}
         <button
-          onClick={() => toggleSelected(item.id)}
+          onClick={() => !item.soldOut && toggleSelected(item.id)}
+          disabled={item.soldOut}
           style={{
             ...styles.checkbox,
-            background: item.selected ? '#050C1C' : 'transparent',
-            borderColor: item.selected ? '#C9A84C' : '#bbb',
+            background: item.selected && !item.soldOut ? '#050C1C' : 'transparent',
+            borderColor: item.selected && !item.soldOut ? '#C9A84C' : '#bbb',
+            cursor: item.soldOut ? 'not-allowed' : 'pointer',
           }}
           aria-label='toggle item'
         >
-          {item.selected && (
+          {item.selected && !item.soldOut && (
             <svg width='10' height='8' viewBox='0 0 10 8' fill='none'>
               <path
                 d='M1 4l3 3 5-6'
@@ -579,18 +585,25 @@ function ItemCard({ item }) {
               color: 'inherit',
             }}
           >
-            <div style={styles.itemName}>{item.name}</div>
+            <div style={{ ...styles.itemName, textDecoration: item.soldOut ? 'line-through' : 'none' }}>{item.name}</div>
           </a>
+
+          {item.soldOut && (
+            <div style={{ color: '#C0392B', fontSize: 12, fontWeight: 700, marginTop: 2 }}>
+              SOLD OUT
+            </div>
+          )}
 
           <div style={styles.itemAttrs}>
             <span style={styles.attrPill}>
               Size: {item.size} <ChevronDown size={11} />
             </span>
 
-            <div style={styles.qtyControl}>
+            <div style={{ ...styles.qtyControl, opacity: item.soldOut ? 0.5 : 1 }}>
               <button
                 style={styles.qtyBtn}
                 onClick={() => updateBagQuantity(-1)}
+                disabled={item.soldOut}
               >
                 <Minus size={11} />
               </button>
@@ -600,6 +613,7 @@ function ItemCard({ item }) {
               <button
                 style={styles.qtyBtn}
                 onClick={() => updateBagQuantity(1)}
+                disabled={item.soldOut}
               >
                 <Plus size={11} />
               </button>
@@ -782,12 +796,12 @@ function CouponPanel() {
 
   // Count how many selected items have coupon toggled on
   const appliedCount = items.filter(
-    (i) => i.selected && appliedCouponIds.has(i.id) && i.couponDiscount > 0,
+    (i) => i.selected && !i.soldOut && appliedCouponIds.has(i.id) && i.couponDiscount > 0,
   ).length
 
   // Count how many selected items have a coupon available (but not yet applied)
   const availableCount = items.filter(
-    (i) => i.selected && i.couponDiscount > 0,
+    (i) => i.selected && !i.soldOut && i.couponDiscount > 0,
   ).length
 
   return (
@@ -827,9 +841,9 @@ function CouponPanel() {
         </div>
 
         <button
-          style={{ ...styles.editBtn, opacity: items.filter(i => i.selected).length === 0 ? 0.4 : 1, cursor: items.filter(i => i.selected).length === 0 ? 'not-allowed' : 'pointer' }}
+          style={{ ...styles.editBtn, opacity: availableCount === 0 ? 0.4 : 1, cursor: availableCount === 0 ? 'not-allowed' : 'pointer' }}
           onClick={() => setShowCoupon(true)}
-          disabled={items.filter(i => i.selected).length === 0}
+          disabled={availableCount === 0}
         >
           {appliedCount > 0 ? 'EDIT' : 'APPLY'}
         </button>
@@ -970,7 +984,7 @@ function PricePanel({ onNeedAuth, triggerPay, onTriggerConsumed, authReady }) {
 
   const couponSavings = getCouponSavings()
 
-  const selected = items.filter((i) => i.selected)
+  const selected = items.filter((i) => i.selected && !i.soldOut)
 
   const totalMrp = useMemo(
     () => selected.reduce((s, i) => s + i.mrp * i.qty, 0),
@@ -1822,8 +1836,9 @@ function BagPage() {
   }, [])
   const [triggerPay, setTriggerPay] = useState(false)
   const [bagRefetchKey, setBagRefetchKey] = useState(0)
-  const selectedCount = items.filter((i) => i.selected).length
-  const allSelected = selectedCount === items.length
+  const purchasableItems = items.filter((i) => !i.soldOut)
+  const selectedCount = purchasableItems.filter((i) => i.selected).length
+  const allSelected = purchasableItems.length > 0 && selectedCount === purchasableItems.length
 
   const handleNeedAuth = (step) => setDrawer({ open: true, step })
   const handleDrawerSuccess = () => {
@@ -1910,6 +1925,7 @@ function BagPage() {
                 ? '#1976d2'
                 : '#C9A84C',
           selected: item.selected,
+          soldOut: (item.available_stock ?? 0) <= 0, // ponytail: guest (unauthenticated) bag has no stock feed, only the fetched bag is checked
         }))
 
         setItems(mappedItems)
@@ -1942,7 +1958,7 @@ function BagPage() {
               onClick={() => {
                 const shouldSelectAll = !allSelected
 
-                items.forEach((i) => {
+                purchasableItems.forEach((i) => {
                   if (i.selected !== shouldSelectAll) {
                     toggleSelected(i.id)
                   }
@@ -1967,7 +1983,7 @@ function BagPage() {
               )}
             </button>
             <span style={styles.itemsCount}>
-              {selectedCount}/{items.length} ITEMS SELECTED
+              {selectedCount}/{purchasableItems.length} ITEMS SELECTED
             </span>
             <div style={styles.itemsActions}>
               {/* <span style={styles.actionBtn}>REMOVE</span> */}
