@@ -146,7 +146,8 @@ const generateInvoice = (order) => {
   <h2>Invoice</h2>
   <p class="muted">
     Order #${order.id}<br/>
-    Date: ${order.date} · Status: ${order.status}
+    Date: ${order.date} · Status: ${order.status}<br/>
+    Mode of Payment: ${{ PREPAID: 'Prepaid (Online)', COD: 'Cash on Delivery (₹49 paid online)', FULL_COD: 'Cash on Delivery' }[order.payment_method] || order.payment_method}
   </p>
 
   <h2>Deliver To</h2>
@@ -172,6 +173,11 @@ const generateInvoice = (order) => {
       ? `<div><span>CGST</span><span>₹${totalCgst.toFixed(2)}</span></div><div><span>SGST</span><span>₹${totalSgst.toFixed(2)}</span></div>`
       : `<div><span>IGST</span><span>₹${totalIgst.toFixed(2)}</span></div>`}
     <div class="grand"><span>Total Paid</span><span>₹${Number(order.total).toLocaleString('en-IN')}</span></div>
+    ${order.payment_method === 'COD' ? `
+    <div><span>Paid Online (Advance)</span><span>₹${Number(order.paid_online ?? 49).toLocaleString('en-IN')}</span></div>
+    <div><span>Payable on Delivery</span><span>₹${Number(order.cod_remaining || 0).toLocaleString('en-IN')}</span></div>` : ''}
+    ${order.payment_method === 'FULL_COD' ? `
+    <div><span>Payable on Delivery</span><span>₹${Number(order.cod_remaining || order.total).toLocaleString('en-IN')}</span></div>` : ''}
   </div>
 
   <div style="background:#050C1C;border-radius:8px;padding:16px 20px;margin-top:32px;text-align:center;border:1px solid #C9A84C33;">

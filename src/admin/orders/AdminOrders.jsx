@@ -1170,7 +1170,9 @@ export default function AdminOrders() {
     const paid = allOrders.filter((o) => o.payment_status === 'PAID')
     return {
       total: allOrders.length,
-      revenue: paid.reduce((s, o) => s + (o.total || 0), 0),
+      // COD's payment_status flips to PAID once the ₹49 advance clears — only that
+      // advance is actually collected, cod_remaining is still cash due on delivery.
+      revenue: paid.reduce((s, o) => s + (o.payment_method === 'COD' ? (o.paid_online || 0) : (o.total || 0)), 0),
       toShip: allOrders.filter((o) => ['PLACED', 'CONFIRMED'].includes(o.status)).length,
       inTransit: allOrders.filter((o) => ['SHIPPED', 'OUT'].includes(o.status)).length,
       delivered: allOrders.filter((o) => o.status === 'DELIVERED').length,
