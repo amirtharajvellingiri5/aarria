@@ -906,6 +906,11 @@ function OrderRow({ order, onUpdated, setToast }) {
                 QC FAILED × {qcFailedCount}
               </span>
             )}
+            {(order.payment_method === 'COD' || order.payment_method === 'FULL_COD') && (
+              <span className='text-[10px] font-bold text-amber-300 border border-amber-500/40 bg-amber-500/15 rounded-full px-2 py-0.5'>
+                To Pay on Delivery: {formatINR(order.cod_remaining ?? (order.payment_method === 'COD' ? order.total - (order.paid_online ?? 49) : order.total))}
+              </span>
+            )}
           </div>
           <p className='text-xs text-stone-500 mt-1 truncate'>
             {order.date} · {a.name || `Customer ${order.customer_id}`} · {(order.items || []).length} item{(order.items || []).length !== 1 ? 's' : ''}

@@ -949,13 +949,13 @@ function OrderCard({ order }) {
               </span>
             )}
             {order.payment_method === 'COD' && (
-              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#fffdf5', color: '#b45309', border: '1px solid #fde68a' }}>
-                Rs.49 + COD
+              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#fef3c7', color: '#92400e', border: '1px solid #f59e0b' }}>
+                To Pay on Delivery: ₹{(order.cod_remaining ?? (order.total - (order.paid_online ?? 49))).toLocaleString('en-IN')}
               </span>
             )}
             {order.payment_method === 'FULL_COD' && (
-              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#fef9ec', color: '#b45309', border: '1px solid #fde68a' }}>
-                Full COD
+              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#fef3c7', color: '#92400e', border: '1px solid #f59e0b' }}>
+                To Pay on Delivery: ₹{(order.cod_remaining ?? order.total).toLocaleString('en-IN')}
               </span>
             )}
           </div>
