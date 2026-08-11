@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, CheckCircle, RefreshCw, Wallet, Factory, Eye, ShieldCheck } from 'lucide-react'
+import { ArrowRight, CheckCircle, Wallet, Factory, Eye, ShieldCheck } from 'lucide-react'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import { useAuthStore } from './store/authStore'
@@ -29,7 +29,6 @@ const PROMISES = [
   { icon: <Eye size={18} color={GOLD} />, title: 'Handpicked, always', body: 'Every piece is vetted by our team. If it doesn\'t meet our fabric standard, it doesn\'t go live.' },
   { icon: <ShieldCheck size={18} color={GOLD} />, title: 'Wash guarantee', body: 'Colour holds. Fit holds. We stand behind every wash — or we replace it.' },
   { icon: <Factory size={18} color={GOLD} />, title: 'Factory direct', body: 'We source straight from the mill and pass every rupee of that saving to you.' },
-  { icon: <RefreshCw size={18} color={GOLD} />, title: 'Free size swap', body: 'Wrong size? We swap it. No questions, no hassle.' },
   { icon: <Wallet size={18} color={GOLD} />, title: 'Pay on delivery', body: 'Try before you commit. Cash or card when it arrives at your door.' },
   { icon: <CheckCircle size={18} color={GOLD} />, title: 'No low-grade cuts', body: 'We reject anything that wouldn\'t pass as premium. Zero compromise on the fabric.' },
 ]
