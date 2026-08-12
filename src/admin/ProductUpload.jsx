@@ -702,7 +702,6 @@ const ProductUpload = () => {
       ),
     )
 
-  const addVariant = () => setVariants((prev) => [...prev, emptyVariant()])
   const removeVariant = (id) =>
     setVariants((prev) => prev.filter((v) => v.id !== id))
 
@@ -1383,13 +1382,7 @@ const ProductUpload = () => {
                       options={MATERIALS}
                       allowCustom
                     />
-                    <Select
-                      label='Color'
-                      value={sareeColor}
-                      onChange={setSareeColor}
-                      options={COLOR_OPTIONS}
-                      allowCustom
-                    />
+                    <ColorPlate label='Color' value={sareeColor} onChange={setSareeColor} />
                     <Select
                       label='Design'
                       value={design}
@@ -1466,13 +1459,7 @@ const ProductUpload = () => {
                       options={BORDER_TYPES}
                       allowCustom
                     />
-                    <Select
-                      label='Blouse Color'
-                      value={blouseColor}
-                      onChange={setBlouseColor}
-                      options={COLOR_OPTIONS}
-                      allowCustom
-                    />
+                    <ColorPlate label='Blouse Color' value={blouseColor} onChange={setBlouseColor} />
                     <Select
                       label='Blouse Pattern'
                       value={blousePattern}
@@ -1558,13 +1545,7 @@ const ProductUpload = () => {
                       onChange={setLegLength}
                       options={LENGTH_TYPES}
                     />
-                    <Select
-                      label='Colour'
-                      value={legColour}
-                      onChange={setLegColour}
-                      options={COLOR_OPTIONS}
-                      allowCustom
-                    />
+                    <ColorPlate label='Colour' value={legColour} onChange={setLegColour} />
                     <Select
                       label='Design Pattern'
                       value={design}
@@ -1603,7 +1584,7 @@ const ProductUpload = () => {
                 ) : isShawlCategory ? (
                   <div className='grid grid-cols-1 sm:grid-cols-2 gap-5'>
                     <Select label='Material' value={material} onChange={setMaterial} options={MATERIALS} allowCustom />
-                    <Select label='Colour' value={shawlColor} onChange={setShawlColor} options={COLOR_OPTIONS} allowCustom />
+                    <ColorPlate label='Colour' value={shawlColor} onChange={setShawlColor} />
                     <Select label='Design' value={design} onChange={setDesign} options={DESIGNS} allowCustom />
                     <Select label='Pattern' value={pattern} onChange={setPattern} options={PATTERNS} allowCustom />
                     <Select label='Size' value={shawlSize} onChange={setShawlSize} options={DUPATTA_SIZES} allowCustom />
@@ -1714,7 +1695,7 @@ const ProductUpload = () => {
                       options={['Regular', 'Straight', 'A-Line', 'Flared', 'Anarkali', 'Asymmetric', 'Layered', 'Panelled']}
                     />
                     <Select label='Design' value={design} onChange={setDesign} options={DESIGNS} allowCustom />
-                    <Select label='Colour' value={dressColour} onChange={setDressColour} options={COLOR_OPTIONS} allowCustom />
+                    <ColorPlate label='Colour' value={dressColour} onChange={setDressColour} />
                     <Select label='Top Length' value={topLength} onChange={setTopLength} options={TOP_LENGTHS} allowCustom />
                     <Select label='Weight' value={dressWeight} onChange={setDressWeight} options={WEIGHTS} />
                     <Select label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
@@ -1731,7 +1712,7 @@ const ProductUpload = () => {
                       options={['Regular', 'Straight', 'A-Line', 'Flared', 'Anarkali', 'Asymmetric', 'Layered', 'Panelled']}
                     />
                     <Select label='Design' value={design} onChange={setDesign} options={DESIGNS} allowCustom />
-                    <Select label='Colour' value={tunicColour} onChange={setTunicColour} options={COLOR_OPTIONS} allowCustom />
+                    <ColorPlate label='Colour' value={tunicColour} onChange={setTunicColour} />
                     <Select label='Weight' value={tunicWeight} onChange={setTunicWeight} options={WEIGHTS} />
                     <Select label='Top Type' value={tunicTopType} onChange={setTunicTopType} options={TOP_TYPES} allowCustom />
                     <Select label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
@@ -1749,7 +1730,7 @@ const ProductUpload = () => {
                     />
                     <Select label='Design' value={design} onChange={setDesign} options={DESIGNS} allowCustom />
                     <Select label='Bottom Type' value={bottomType} onChange={setBottomType} options={BOTTOM_TYPES} allowCustom />
-                    <Select label='Colour' value={pantsColour} onChange={setPantsColour} options={COLOR_OPTIONS} allowCustom />
+                    <ColorPlate label='Colour' value={pantsColour} onChange={setPantsColour} />
                     <Select label='Weight' value={pantsWeight} onChange={setPantsWeight} options={WEIGHTS} />
                     <Select label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
                   </div>
@@ -1975,13 +1956,6 @@ const ProductUpload = () => {
                   ))}
                 </div>
 
-                <button
-                  type='button'
-                  onClick={addVariant}
-                  className='w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-stone-700 hover:border-rose-500 rounded-xl text-sm text-stone-500 hover:text-rose-400 transition-colors'
-                >
-                  <Plus size={16} /> Add Another Color Variant
-                </button>
               </Section>
 
               <Section
@@ -2140,8 +2114,8 @@ const VariantCard = ({
   return (
     <div className='border border-stone-800 rounded-2xl overflow-hidden bg-stone-900/30'>
       <div className='p-5 space-y-5'>
-        {/* Color(s) — captured per-part in Description Attributes for suit-set-* categories */}
-        {!PER_PART_COLOR_TYPES.includes(categoryType) && (
+        {/* Color(s) — captured per-part in Description Attributes for suit-set-* categories; sarees capture color in Description Attributes too */}
+        {!PER_PART_COLOR_TYPES.includes(categoryType) && categoryType !== 'saree' && (
           <>
             <Select
               label='Color'
