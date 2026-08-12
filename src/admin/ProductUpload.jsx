@@ -359,9 +359,6 @@ const emptyVariant = () => ({
 // kept as an empty map (rather than deleting the branch) in case a future category needs per-part sizes again
 const COMPONENTS_BY_TYPE = {}
 
-// Categories with per-part color captured in Description Attributes (ColorPlate) — hide the flat Color picker
-const PER_PART_COLOR_TYPES = ['suit-set-3pc', 'suit-set-top-dupatta', 'suit-set-top-kurti', 'dress-material']
-
 // ── Main Component ────────────────────────────────────────────────────────────
 const ProductUpload = () => {
   // Basic Info
@@ -707,19 +704,34 @@ const ProductUpload = () => {
 
   // ── Build payload ──────────────────────────────────────────────────────────
   // FIX: title is now included; reviewed_on is included in ratings
-  const buildInventoryVariants = (list) =>
-    list.map((v) => {
+  const buildInventoryVariants = (list) => {
+    // ponytail: color now comes from each category's ColorPlate state, not the removed flat dropdown.
+    // kurtis-tops has no Colour field yet, so it still falls back to the legacy per-variant v.colors.
+    const categoryColor = isSuitSet3pc
+      ? [ssTopColor, ssBottomColor, ssShawlColor].filter(Boolean).join(', ')
+      : isDressMaterial
+      ? [dmTopColor, dmBottomColor, dmShawlColor].filter(Boolean).join(', ')
+      : isSuitSetTopDupatta
+      ? [ssTopColor, ssShawlColor].filter(Boolean).join(', ')
+      : isSuitSetTopKurti
+      ? [ssTopColor, ssKurtiColor].filter(Boolean).join(', ')
+      : isSaree
+      ? sareeColor
+      : isLegging
+      ? legColour
+      : isShawlCategory
+      ? shawlColor
+      : isDresses
+      ? dressColour
+      : isTunics
+      ? tunicColour
+      : isStraightPants
+      ? pantsColour
+      : null
+
+    return list.map((v) => {
       const base = {
-        // ponytail: suit-set-* / dress-material colors already captured per-part in Description Attributes
-        color: isSuitSet3pc
-          ? [ssTopColor, ssBottomColor, ssShawlColor].filter(Boolean).join(', ')
-          : isDressMaterial
-          ? [dmTopColor, dmBottomColor, dmShawlColor].filter(Boolean).join(', ')
-          : isSuitSetTopDupatta
-          ? [ssTopColor, ssShawlColor].filter(Boolean).join(', ')
-          : isSuitSetTopKurti
-          ? [ssTopColor, ssKurtiColor].filter(Boolean).join(', ')
-          : v.colors.join(', '),
+        color: categoryColor ?? v.colors.join(', '),
         main_image: v.main_image_filename, // ✅ server filename from upload API
         other_images: v.other_image_filenames // ✅ server filenames from upload API
           .filter((f) => f.filename)
@@ -756,6 +768,7 @@ const ProductUpload = () => {
           .map((s) => ({ size: s.size, quantity: parseInt(s.quantity) || 0 })),
       }
     })
+  }
 
   const buildPayload = () => ({
     title, // ✅ was missing in failing payload
@@ -1931,9 +1944,6 @@ const ProductUpload = () => {
                       key={variant.id}
                       variant={variant}
                       index={vi}
-                      onColorsChange={(val) =>
-                        setVariantField(variant.id, 'colors', val)
-                      }
                       onSizeQtyChange={(size, qty) =>
                         setVariantSize(variant.id, size, qty)
                       }
@@ -2093,7 +2103,6 @@ const ProductUpload = () => {
 const VariantCard = ({
   variant,
   index,
-  onColorsChange,
   onSizeQtyChange,
   categoryType,
   onComponentSizeQtyChange,
@@ -2114,23 +2123,6 @@ const VariantCard = ({
   return (
     <div className='border border-stone-800 rounded-2xl overflow-hidden bg-stone-900/30'>
       <div className='p-5 space-y-5'>
-        {/* Color(s) — captured per-part in Description Attributes for suit-set-* categories; sarees capture color in Description Attributes too */}
-        {!PER_PART_COLOR_TYPES.includes(categoryType) && categoryType !== 'saree' && (
-          <>
-            <Select
-              label='Color'
-              required
-              value={variant.colors}
-              onChange={onColorsChange}
-              options={COLOR_OPTIONS}
-              multiple
-            />
-            <p className='-mt-3 text-xs text-stone-500'>
-              Pick multiple colors if this variant (same images, sizes & stock) comes in more than one color.
-            </p>
-          </>
-        )}
-
         {/* Sizes */}
         {categoryType === 'saree' ? (
           <div>

@@ -47,8 +47,6 @@ const NECK_OPTIONS = ['Round Neck','V-Neck','Boat Neck','Mandarin Collar','Colla
 const DESIGN_STYLING_OPTIONS = ['Regular', 'Straight', 'A-Line', 'Flared', 'Anarkali', 'Asymmetric', 'Layered', 'Panelled']
 const emptySizes = () => ALL_SIZES.map((s) => ({ size: s, quantity: '' }))
 
-// Categories with per-part color captured in Description Attributes (ColorPlate) — hide the flat Color picker
-const PER_PART_COLOR_TYPES = ['suit-set-3pc', 'suit-set-top-dupatta', 'suit-set-top-kurti', 'dress-material']
 // ponytail: all multi-part categories now capture size once as common (not per shawl/top/bottom/kurti);
 // kept as an empty map (rather than deleting the branch) in case a future category needs per-part sizes again
 const COMPONENTS_BY_TYPE = {}
@@ -342,7 +340,7 @@ const mapApiToState = (product) => {
     // Saree
     sareeColor: desc.Color || '',
     pattern: desc.Pattern || '',
-    sareeType: desc['Saree Type'] || '',
+    sareeType: desc.Type || desc['Saree Type'] || '',
     blouseIncluded: desc['Blouse Included'] || '',
     numberOfBlouses: desc['Number of Blouses'] || '',
     blouseType: desc['Blouse Type'] || '',
@@ -371,12 +369,12 @@ const mapApiToState = (product) => {
     dmShawlPattern: desc['Shawl Pattern'] || '',
     dmShawlDesign: desc['Shawl Design'] || '',
     dmShawlSize: desc['Shawl Size'] || '',
-    dmStitchType: desc['Stitch Type'] || '',
+    dmStitchType: desc.Type || desc['Stitch Type'] || '',
     dmWeight: desc.Weight || '',
     dmDupattaSize: desc['Dupatta Size'] || '',
     dmPackSize: desc['Pack Of'] || desc['Pack Size'] || '',
     // Leggings
-    legLength: desc.Length || '',
+    legLength: desc['Length Type'] || desc.Length || '',
     legColour: desc.Color || '',
     legWeight: desc.Weight || '',
     // Dupattas/Shawls
@@ -850,11 +848,19 @@ const ProductEdit = ({ onBack }) => {
 
   // ── Build inventory variants (category-aware color & sizing) ───────────────
   const buildInventoryVariants = (list) => list.map((v) => {
+    // ponytail: color comes from each category's ColorPlate state, not the removed flat dropdown.
+    // kurtis-tops has no Colour field yet, so it still falls back to the legacy per-variant v.colors.
     let color
     if (categoryType === 'suit-set-3pc') color = [ssTopColor, ssBottomColor, ssShawlColor].filter(Boolean).join(', ')
     else if (categoryType === 'dress-material') color = [dmTopColor, dmBottomColor, dmShawlColor].filter(Boolean).join(', ')
     else if (categoryType === 'suit-set-top-dupatta') color = [ssTopColor, ssShawlColor].filter(Boolean).join(', ')
     else if (categoryType === 'suit-set-top-kurti') color = [ssTopColor, ssKurtiColor].filter(Boolean).join(', ')
+    else if (isSaree) color = sareeColor
+    else if (isLegging) color = legColour
+    else if (isShawlCategory) color = shawlColor
+    else if (isDresses) color = dressColour
+    else if (isTunics) color = tunicColour
+    else if (isStraightPants) color = pantsColour
     else color = v.colors.join(', ')
 
     const base = {
@@ -895,7 +901,7 @@ const ProductEdit = ({ onBack }) => {
     if (isSaree) {
       desc = {
         Material: material, Color: sareeColor, Design: design, Pattern: pattern,
-        'Saree Type': sareeType, 'Blouse Included': blouseIncluded, 'Number of Blouses': numberOfBlouses,
+        Type: sareeType, 'Blouse Included': blouseIncluded, 'Number of Blouses': numberOfBlouses,
         'Blouse Type': blouseType, 'Blouse Design': blouseDesign, 'Saree Length': sareeLength,
         'Blouse Material': blouseMaterial, 'Saree Weight': sareeWeight, 'Saree Border': sareeBorder,
         'Blouse Color': blouseColor, 'Blouse Pattern': blousePattern, 'Blouse Border': blouseBorder,
@@ -903,42 +909,46 @@ const ProductEdit = ({ onBack }) => {
       }
     } else if (isDressMaterial) {
       desc = {
-        'Top Color': dmTopColor, 'Top Material': dmTopMaterial, 'Top Pattern': dmTopPattern, 'Top Design': dmTopDesign, 'Top Size': dmTopSize,
-        'Bottom Color': dmBottomColor, 'Bottom Material': dmBottomMaterial, 'Bottom Pattern': dmBottomPattern, 'Bottom Design': dmBottomDesign, 'Bottom Size': dmBottomSize,
-        'Shawl Color': dmShawlColor, 'Shawl Material': dmShawlMaterial, 'Shawl Pattern': dmShawlPattern, 'Shawl Design': dmShawlDesign, 'Shawl Size': dmShawlSize,
-        'Stitch Type': dmStitchType, Weight: dmWeight, 'Dupatta Size': dmDupattaSize, 'Pack Size': dmPackSize,
+        'Top Colour': dmTopColor, 'Top Material': dmTopMaterial, 'Top Pattern': dmTopPattern, 'Top Design': dmTopDesign, 'Top Size': dmTopSize,
+        'Bottom Colour': dmBottomColor, 'Bottom Material': dmBottomMaterial, 'Bottom Pattern': dmBottomPattern, 'Bottom Design': dmBottomDesign, 'Bottom Size': dmBottomSize,
+        'Shawl Colour': dmShawlColor, 'Shawl Material': dmShawlMaterial, 'Shawl Pattern': dmShawlPattern, 'Shawl Design': dmShawlDesign, 'Shawl Size': dmShawlSize,
+        Type: dmStitchType, Weight: dmWeight, 'Top Length': topLength, 'Sleeve Length': sleeveLength, 'Bottom Type': bottomType,
+        'Dupatta Size': dmDupattaSize, 'Pack Of': dmPackSize, 'Neck Design': neck,
       }
     } else if (isLegging) {
-      desc = { Material: material, Length: legLength, Color: legColour, Design: design, Weight: legWeight }
+      desc = { Material: material, 'Length Type': legLength, Color: legColour, Design: design, Weight: legWeight }
     } else if (isKurtisTops) {
       desc = { Material: material, 'Sleeve Length': sleeveLength, Neck: neck, 'Design Styling': designStyling, Design: design, 'Top Length': topLength }
     } else if (isShawlCategory) {
-      desc = { Material: material, Color: shawlColor, Design: design, Pattern: pattern, Size: shawlSize, Weight: shawlWeight }
+      desc = { Material: material, Colour: shawlColor, Design: design, Pattern: pattern, Size: shawlSize, Weight: shawlWeight }
     } else if (isSuitSet3pc) {
       desc = {
-        'Top Material': ssTopMaterial, 'Top Pattern': ssTopPattern, 'Top Design': ssTopDesign, 'Top Color': ssTopColor,
-        'Bottom Material': ssBottomMaterial, 'Bottom Pattern': ssBottomPattern, 'Bottom Color': ssBottomColor,
-        'Shawl Material': ssShawlMaterial, 'Shawl Pattern': ssShawlPattern, 'Shawl Design': ssShawlDesign, 'Shawl Color': ssShawlColor,
-        'Product Type': ssProductType, Weight: ssWeight, 'Dupatta Size': ssDupattaSize, 'Pack Size': ssPackSize, 'Top Length': topLength,
+        'Top Material': ssTopMaterial, 'Top Pattern': ssTopPattern, 'Top Colour': ssTopColor,
+        'Bottom Material': ssBottomMaterial, 'Bottom Pattern': ssBottomPattern, 'Bottom Colour': ssBottomColor,
+        'Shawl Material': ssShawlMaterial, 'Shawl Pattern': ssShawlPattern, 'Shawl Colour': ssShawlColor,
+        'Kurti Type': ssKurtiType, 'Product Type': ssProductType, Weight: ssWeight, 'Top Length': topLength, 'Sleeve Length': sleeveLength,
+        'Bottom Type': bottomType, 'Dupatta Size': ssDupattaSize, 'Pack Of': ssPackSize, 'Neck Design': neck,
       }
     } else if (isSuitSetTopDupatta) {
       desc = {
-        'Top Material': ssTopMaterial, 'Top Pattern': ssTopPattern, 'Top Design': ssTopDesign, 'Top Color': ssTopColor,
-        'Shawl Material': ssShawlMaterial, 'Shawl Pattern': ssShawlPattern, 'Shawl Design': ssShawlDesign, 'Shawl Color': ssShawlColor,
-        'Product Type': ssProductType, Weight: ssWeight, 'Dupatta Size': ssDupattaSize, 'Pack Size': ssPackSize, 'Top Length': topLength,
+        'Top Material': ssTopMaterial, 'Top Pattern': ssTopPattern, 'Top Design': ssTopDesign, 'Top Colour': ssTopColor,
+        'Shawl Material': ssShawlMaterial, 'Shawl Pattern': ssShawlPattern, 'Shawl Design': ssShawlDesign, 'Shawl Colour': ssShawlColor,
+        'Product Type': ssProductType, Weight: ssWeight, 'Top Length': topLength, 'Sleeve Length': sleeveLength,
+        'Dupatta Size': ssDupattaSize, 'Pack Of': ssPackSize, 'Neck Design': neck,
       }
     } else if (isSuitSetTopKurti) {
       desc = {
-        'Top Material': ssTopMaterial, 'Top Pattern': ssTopPattern, 'Top Design': ssTopDesign, 'Top Color': ssTopColor,
-        'Kurti Material': ssKurtiMaterial, 'Kurti Pattern': ssKurtiPattern, 'Kurti Design': ssKurtiDesign, 'Kurti Color': ssKurtiColor, 'Kurti Type': ssKurtiType,
-        'Product Type': ssProductType, Weight: ssWeight, 'Pack Size': ssPackSize, 'Top Length': topLength,
+        'Top Material': ssTopMaterial, 'Top Pattern': ssTopPattern, 'Top Design': ssTopDesign, 'Top Colour': ssTopColor,
+        'Kurti Material': ssKurtiMaterial, 'Kurti Pattern': ssKurtiPattern, 'Kurti Design': ssKurtiDesign, 'Kurti Colour': ssKurtiColor,
+        'Product Type': ssProductType, Weight: ssWeight, 'Top Length': topLength, 'Sleeve Length': sleeveLength,
+        'Pack Of': ssPackSize, 'Neck Design': neck,
       }
     } else if (isDresses) {
-      desc = { Material: material, Color: dressColour, Design: design, 'Design Styling': designStyling, Weight: dressWeight, 'Top Length': topLength }
+      desc = { Material: material, 'Sleeve Length': sleeveLength, Neck: neck, 'Design Styling': designStyling, Design: design, Colour: dressColour, 'Top Length': topLength, Weight: dressWeight }
     } else if (isTunics) {
-      desc = { Material: material, Color: tunicColour, Design: design, 'Sleeve Length': sleeveLength, Neck: neck, 'Top Type': tunicTopType, Weight: tunicWeight }
+      desc = { Material: material, 'Sleeve Length': sleeveLength, Neck: neck, 'Design Styling': designStyling, Design: design, Colour: tunicColour, Weight: tunicWeight, 'Top Type': tunicTopType }
     } else if (isStraightPants) {
-      desc = { Material: material, Color: pantsColour, Design: design, 'Bottom Type': bottomType, Weight: pantsWeight }
+      desc = { Material: material, 'Sleeve Length': sleeveLength, Neck: neck, 'Design Styling': designStyling, Design: design, 'Bottom Type': bottomType, Colour: pantsColour, Weight: pantsWeight }
     } else {
       desc = {
         Material: material,
@@ -1594,7 +1604,6 @@ const ProductEdit = ({ onBack }) => {
                       key={variant.id}
                       variant={variant}
                       index={vi}
-                      onColorsChange={(val) => setVariantField(variant.id, 'colors', val)}
                       onSizeQtyChange={(size, qty) => setVariantSize(variant.id, size, qty)}
                       categoryType={categoryType}
                       onComponentSizeQtyChange={(component, size, qty) => setVariantComponentSize(variant.id, component, size, qty)}
@@ -1698,7 +1707,7 @@ const ProductEdit = ({ onBack }) => {
 // ── Variant Card ──────────────────────────────────────────────────────────────
 const VariantCard = ({
   variant, index,
-  onColorsChange, onSizeQtyChange,
+  onSizeQtyChange,
   categoryType, onComponentSizeQtyChange,
   onMainImage, onRemoveMainImage,
   onOtherImages, onRemoveOtherImage,
@@ -1722,15 +1731,6 @@ const VariantCard = ({
       </div>
 
       <div className='p-5 space-y-5'>
-        {!PER_PART_COLOR_TYPES.includes(categoryType) && categoryType !== 'saree' && (
-          <>
-            <Select label='Color' required value={variant.colors} onChange={onColorsChange} options={COLOR_OPTIONS} multiple />
-            <p className='-mt-3 text-xs text-stone-500'>
-              Pick multiple colors if this variant (same images, sizes & stock) comes in more than one color.
-            </p>
-          </>
-        )}
-
         {categoryType === 'saree' ? (
           <div>
             <label className='block text-xs font-semibold uppercase tracking-widest text-rose-400 mb-3'>Stock (Free Size)</label>
