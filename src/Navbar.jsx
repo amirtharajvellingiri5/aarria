@@ -711,9 +711,8 @@ const Navbar = () => {
                         <div
                           style={{
                             fontSize: '12px',
-                            fontWeight: 700,
-                            color: '#E8C060',
                             fontWeight: 800,
+                            color: '#E8C060',
                             textTransform: 'uppercase',
                             letterSpacing: '0.04em',
                             marginBottom: '6px',

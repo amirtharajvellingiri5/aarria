@@ -199,6 +199,8 @@ async function fetchProduct(productId) {
   } = raw.description ?? {}
   const details = { 'Style Code': raw.style_code ?? '—', ...desc }
   Object.keys(details).forEach((k) => {
+    // ponytail: multi-select attrs come back as arrays — flatten before the empty check
+    if (Array.isArray(details[k])) details[k] = details[k].join(', ')
     if (details[k] === '' || details[k] == null || /colou?r/i.test(k)) delete details[k]
   })
   const discount = Math.round(

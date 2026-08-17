@@ -88,11 +88,11 @@ const Select = ({ label, options, value, onChange, required, allowCustom, multip
     trimmedSearch &&
     !options.some((o) => o.toLowerCase() === trimmedSearch.toLowerCase())
 
-  const isSelected = (o) => (multiple ? (value || []).includes(o) : value === o)
+  const isSelected = (o) => (multiple ? Array.isArray(value) && value.includes(o) : value === o)
 
   const selectOption = (o) => {
     if (multiple) {
-      const current = value || []
+      const current = Array.isArray(value) ? value : []
       onChange(
         current.includes(o) ? current.filter((c) => c !== o) : [...current, o],
       )
@@ -105,11 +105,11 @@ const Select = ({ label, options, value, onChange, required, allowCustom, multip
   }
 
   const triggerLabel = multiple
-    ? (value || []).length
+    ? Array.isArray(value) && value.length
       ? value.join(', ')
       : `Select ${label}`
     : value || `Select ${label}`
-  const triggerFilled = multiple ? (value || []).length > 0 : !!value
+  const triggerFilled = multiple ? Array.isArray(value) && value.length > 0 : !!value
 
   return (
     <div className='relative' data-select-root>
@@ -167,7 +167,7 @@ const Select = ({ label, options, value, onChange, required, allowCustom, multip
               <button
                 type='button'
                 onClick={() => {
-                  onChange(trimmedSearch)
+                  selectOption(trimmedSearch)
                   setOpen(false)
                   setSearch('')
                 }}
@@ -395,98 +395,98 @@ const ProductUpload = () => {
     : 'standard'
 
   // Description attributes
-  const [material, setMaterial] = useState('Cotton')
-  const [sleeveLength, setSleeveLength] = useState('Half Sleeves')
-  const [neck, setNeck] = useState('Round Neck')
-  const [designStyling, setDesignStyling] = useState('Regular')
-  const [design, setDesign] = useState('Floral')
-  const [bottomType, setBottomType] = useState('Palazzo')
-  const [topLength, setTopLength] = useState('Regular')
-  const [occasion, setOccasion] = useState('Casual') // ponytail: single shared field, rendered on every category branch
+  const [material, setMaterial] = useState(['Cotton'])
+  const [sleeveLength, setSleeveLength] = useState(['Half Sleeves'])
+  const [neck, setNeck] = useState(['Round Neck'])
+  const [designStyling, setDesignStyling] = useState(['Regular'])
+  const [design, setDesign] = useState(['Floral'])
+  const [bottomType, setBottomType] = useState(['Palazzo'])
+  const [topLength, setTopLength] = useState(['Regular'])
+  const [occasion, setOccasion] = useState(['Casual']) // ponytail: single shared field, rendered on every category branch
 
   // Saree-only description attributes
   const [sareeColor, setSareeColor] = useState('Red')
-  const [pattern, setPattern] = useState('Solid')
-  const [sareeType, setSareeType] = useState('Plain')
-  const [blouseIncluded, setBlouseIncluded] = useState('With Blouse')
-  const [numberOfBlouses, setNumberOfBlouses] = useState('1')
-  const [blouseType, setBlouseType] = useState('Stitched')
-  const [blouseDesign, setBlouseDesign] = useState('Floral')
-  const [sareeLength, setSareeLength] = useState('5.5 m')
-  const [blouseMaterial, setBlouseMaterial] = useState('Cotton')
-  const [sareeWeight, setSareeWeight] = useState('Light (<500g)')
-  const [sareeBorder, setSareeBorder] = useState('Lace Attached')
+  const [pattern, setPattern] = useState(['Solid'])
+  const [sareeType, setSareeType] = useState(['Plain'])
+  const [blouseIncluded, setBlouseIncluded] = useState(['With Blouse'])
+  const [numberOfBlouses, setNumberOfBlouses] = useState(['1'])
+  const [blouseType, setBlouseType] = useState(['Stitched'])
+  const [blouseDesign, setBlouseDesign] = useState(['Floral'])
+  const [sareeLength, setSareeLength] = useState(['5.5 m'])
+  const [blouseMaterial, setBlouseMaterial] = useState(['Cotton'])
+  const [sareeWeight, setSareeWeight] = useState(['Light (<500g)'])
+  const [sareeBorder, setSareeBorder] = useState(['Lace Attached'])
   const [blouseColor, setBlouseColor] = useState('Red')
-  const [blousePattern, setBlousePattern] = useState('Solid')
-  const [blouseBorder, setBlouseBorder] = useState('Lace Attached')
-  const [blouseSize, setBlouseSize] = useState('M')
+  const [blousePattern, setBlousePattern] = useState(['Solid'])
+  const [blouseBorder, setBlouseBorder] = useState(['Lace Attached'])
+  const [blouseSize, setBlouseSize] = useState(['M'])
 
   // Dress-material-only description attributes — mirrors suit-set-3pc's per-part fields,
   // except it's always unstitched fabric (dmStitchType defaults to 'Unstitched')
   const [dmShawlColor, setDmShawlColor] = useState('Green')
-  const [dmShawlMaterial, setDmShawlMaterial] = useState('Georgette')
-  const [dmShawlPattern, setDmShawlPattern] = useState('Solid')
-  const [dmShawlDesign, setDmShawlDesign] = useState('Floral')
-  const [dmShawlSize, setDmShawlSize] = useState('2.25 m')
+  const [dmShawlMaterial, setDmShawlMaterial] = useState(['Georgette'])
+  const [dmShawlPattern, setDmShawlPattern] = useState(['Solid'])
+  const [dmShawlDesign, setDmShawlDesign] = useState(['Floral'])
+  const [dmShawlSize, setDmShawlSize] = useState(['2.25 m'])
   const [dmTopColor, setDmTopColor] = useState('Red')
-  const [dmTopMaterial, setDmTopMaterial] = useState('Cotton')
-  const [dmTopPattern, setDmTopPattern] = useState('Solid')
-  const [dmTopDesign, setDmTopDesign] = useState('Floral')
-  const [dmTopSize, setDmTopSize] = useState('M')
+  const [dmTopMaterial, setDmTopMaterial] = useState(['Cotton'])
+  const [dmTopPattern, setDmTopPattern] = useState(['Solid'])
+  const [dmTopDesign, setDmTopDesign] = useState(['Floral'])
+  const [dmTopSize, setDmTopSize] = useState(['M'])
   const [dmBottomColor, setDmBottomColor] = useState('Blue')
-  const [dmBottomMaterial, setDmBottomMaterial] = useState('Cotton')
-  const [dmBottomPattern, setDmBottomPattern] = useState('Solid')
-  const [dmBottomDesign, setDmBottomDesign] = useState('Floral')
-  const [dmBottomSize, setDmBottomSize] = useState('M')
-  const [dmStitchType, setDmStitchType] = useState('Unstitched')
-  const [dmWeight, setDmWeight] = useState('Light (<500g)')
-  const [dmDupattaSize, setDmDupattaSize] = useState('2.25 m')
-  const [dmPackSize, setDmPackSize] = useState('1')
+  const [dmBottomMaterial, setDmBottomMaterial] = useState(['Cotton'])
+  const [dmBottomPattern, setDmBottomPattern] = useState(['Solid'])
+  const [dmBottomDesign, setDmBottomDesign] = useState(['Floral'])
+  const [dmBottomSize, setDmBottomSize] = useState(['M'])
+  const [dmStitchType, setDmStitchType] = useState(['Unstitched'])
+  const [dmWeight, setDmWeight] = useState(['Light (<500g)'])
+  const [dmDupattaSize, setDmDupattaSize] = useState(['2.25 m'])
+  const [dmPackSize, setDmPackSize] = useState(['1'])
 
   // Leggings-only description attributes
-  const [legLength, setLegLength] = useState('Full Length')
+  const [legLength, setLegLength] = useState(['Full Length'])
   const [legColour, setLegColour] = useState('Black')
-  const [legWeight, setLegWeight] = useState('Light (<500g)')
+  const [legWeight, setLegWeight] = useState(['Light (<500g)'])
 
   // Dupattas & Shawls-only description attributes
   const [shawlColor, setShawlColor] = useState('Red')
-  const [shawlSize, setShawlSize] = useState('2.25 m')
-  const [shawlWeight, setShawlWeight] = useState('Light (<500g)')
+  const [shawlSize, setShawlSize] = useState(['2.25 m'])
+  const [shawlWeight, setShawlWeight] = useState(['Light (<500g)'])
 
   // Dresses-only description attributes (Material/Design/etc reuse the generic fields above)
   const [dressColour, setDressColour] = useState('Red')
-  const [dressWeight, setDressWeight] = useState('Light (<500g)')
+  const [dressWeight, setDressWeight] = useState(['Light (<500g)'])
 
   // Tunics-only description attributes (Material/Design/etc reuse the generic fields above)
   const [tunicColour, setTunicColour] = useState('Red')
-  const [tunicWeight, setTunicWeight] = useState('Light (<500g)')
-  const [tunicTopType, setTunicTopType] = useState('Short Top')
+  const [tunicWeight, setTunicWeight] = useState(['Light (<500g)'])
+  const [tunicTopType, setTunicTopType] = useState(['Short Top'])
 
   // Straight Pants-only description attributes (Material/Design/etc reuse the generic fields above)
   const [pantsColour, setPantsColour] = useState('Black')
-  const [pantsWeight, setPantsWeight] = useState('Light (<500g)')
+  const [pantsWeight, setPantsWeight] = useState(['Light (<500g)'])
 
   // Suit Set (3pc / top+dupatta / top+kurti) per-component description attributes
-  const [ssTopMaterial, setSsTopMaterial] = useState('Cotton')
-  const [ssTopPattern, setSsTopPattern] = useState('Solid')
-  const [ssTopDesign, setSsTopDesign] = useState('Floral') // ponytail: shared with top-dupatta/top-kurti branches; 3pc no longer renders/sends this
+  const [ssTopMaterial, setSsTopMaterial] = useState(['Cotton'])
+  const [ssTopPattern, setSsTopPattern] = useState(['Solid'])
+  const [ssTopDesign, setSsTopDesign] = useState(['Floral']) // ponytail: shared with top-dupatta/top-kurti branches; 3pc no longer renders/sends this
   const [ssTopColor, setSsTopColor] = useState('Red')
-  const [ssBottomMaterial, setSsBottomMaterial] = useState('Cotton')
-  const [ssBottomPattern, setSsBottomPattern] = useState('Solid')
+  const [ssBottomMaterial, setSsBottomMaterial] = useState(['Cotton'])
+  const [ssBottomPattern, setSsBottomPattern] = useState(['Solid'])
   const [ssBottomColor, setSsBottomColor] = useState('Blue')
-  const [ssShawlMaterial, setSsShawlMaterial] = useState('Georgette')
-  const [ssShawlPattern, setSsShawlPattern] = useState('Solid')
-  const [ssShawlDesign, setSsShawlDesign] = useState('Floral') // ponytail: shared with top-dupatta branch; 3pc no longer renders/sends this
+  const [ssShawlMaterial, setSsShawlMaterial] = useState(['Georgette'])
+  const [ssShawlPattern, setSsShawlPattern] = useState(['Solid'])
+  const [ssShawlDesign, setSsShawlDesign] = useState(['Floral']) // ponytail: shared with top-dupatta branch; 3pc no longer renders/sends this
   const [ssShawlColor, setSsShawlColor] = useState('Green')
-  const [ssKurtiMaterial, setSsKurtiMaterial] = useState('Cotton')
-  const [ssKurtiPattern, setSsKurtiPattern] = useState('Solid')
-  const [ssKurtiDesign, setSsKurtiDesign] = useState('Floral')
+  const [ssKurtiMaterial, setSsKurtiMaterial] = useState(['Cotton'])
+  const [ssKurtiPattern, setSsKurtiPattern] = useState(['Solid'])
+  const [ssKurtiDesign, setSsKurtiDesign] = useState(['Floral'])
   const [ssKurtiColor, setSsKurtiColor] = useState('Red')
-  const [ssKurtiType, setSsKurtiType] = useState('Straight Cut')
-  const [ssProductType, setSsProductType] = useState('Ready Made')
-  const [ssWeight, setSsWeight] = useState('Light (<500g)')
-  const [ssDupattaSize, setSsDupattaSize] = useState('2.25 m')
-  const [ssPackSize, setSsPackSize] = useState('1')
+  const [ssKurtiType, setSsKurtiType] = useState(['Straight Cut'])
+  const [ssProductType, setSsProductType] = useState(['Ready Made'])
+  const [ssWeight, setSsWeight] = useState(['Light (<500g)'])
+  const [ssDupattaSize, setSsDupattaSize] = useState(['2.25 m'])
+  const [ssPackSize, setSsPackSize] = useState(['1'])
 
   // Description & product info
   const [description, setDescription] = useState(
@@ -499,7 +499,7 @@ const ProductUpload = () => {
   const [buyPrice, setBuyPrice] = useState('900')
   const [gst, setGst] = useState('5')
   const [discountType, setDiscountType] = useState('PERCENTAGE')
-  const [discountValue, setDiscountValue] = useState('10')
+  const [discountValue, setDiscountValue] = useState('')
 
   // Product videos (YouTube/direct URLs) — shown on PDP only when set
   const [videoUrl1, setVideoUrl1] = useState('')
@@ -770,17 +770,27 @@ const ProductUpload = () => {
     })
   }
 
+  // ponytail: multi-select fields are arrays and [] is truthy, so || fallback chains
+  // silently break — pick the first non-empty value and flatten it to a string
+  const firstFabric = (...vals) => {
+    for (const v of vals) {
+      const s = Array.isArray(v) ? v.join(', ') : v
+      if (s) return s
+    }
+    return null
+  }
+
   const buildPayload = () => ({
     title, // ✅ was missing in failing payload
     fabric: isDressMaterial
-      ? (dmTopMaterial || dmShawlMaterial || dmBottomMaterial || null)
+      ? firstFabric(dmTopMaterial, dmShawlMaterial, dmBottomMaterial)
       : isSuitSet3pc
-      ? (ssTopMaterial || ssBottomMaterial || ssShawlMaterial || null)
+      ? firstFabric(ssTopMaterial, ssBottomMaterial, ssShawlMaterial)
       : isSuitSetTopDupatta
-      ? (ssTopMaterial || ssShawlMaterial || null)
+      ? firstFabric(ssTopMaterial, ssShawlMaterial)
       : isSuitSetTopKurti
-      ? (ssTopMaterial || ssKurtiMaterial || null)
-      : material,
+      ? firstFabric(ssTopMaterial, ssKurtiMaterial)
+      : firstFabric(material),
     brand: { name: brandName, catalogue_id: catalogueId },
     category: {
       category_id: categoryId,
@@ -1388,7 +1398,7 @@ const ProductUpload = () => {
               >
                 {isSaree ? (
                   <div className='grid grid-cols-1 sm:grid-cols-2 gap-5'>
-                    <Select
+                    <Select multiple
                       label='Material'
                       value={material}
                       onChange={setMaterial}
@@ -1396,76 +1406,76 @@ const ProductUpload = () => {
                       allowCustom
                     />
                     <ColorPlate label='Color' value={sareeColor} onChange={setSareeColor} />
-                    <Select
+                    <Select multiple
                       label='Design'
                       value={design}
                       onChange={setDesign}
                       options={DESIGNS}
                       allowCustom
                     />
-                    <Select
+                    <Select multiple
                       label='Pattern'
                       value={pattern}
                       onChange={setPattern}
                       options={PATTERNS}
                       allowCustom
                     />
-                    <Select
+                    <Select multiple
                       label='Type'
                       value={sareeType}
                       onChange={setSareeType}
                       options={SAREE_TYPES}
                       allowCustom
                     />
-                    <Select
+                    <Select multiple
                       label='Blouse Included'
                       value={blouseIncluded}
                       onChange={setBlouseIncluded}
                       options={BLOUSE_INCLUDED}
                     />
-                    <Select
+                    <Select multiple
                       label='Number of Blouses'
                       value={numberOfBlouses}
                       onChange={setNumberOfBlouses}
                       options={NUMBER_OF_BLOUSES}
                       allowCustom
                     />
-                    <Select
+                    <Select multiple
                       label='Blouse Type'
                       value={blouseType}
                       onChange={setBlouseType}
                       options={BLOUSE_TYPES}
                       allowCustom
                     />
-                    <Select
+                    <Select multiple
                       label='Blouse Design'
                       value={blouseDesign}
                       onChange={setBlouseDesign}
                       options={DESIGNS}
                       allowCustom
                     />
-                    <Select
+                    <Select multiple
                       label='Saree Length'
                       value={sareeLength}
                       onChange={setSareeLength}
                       options={SAREE_LENGTHS}
                       allowCustom
                     />
-                    <Select
+                    <Select multiple
                       label='Blouse Material'
                       value={blouseMaterial}
                       onChange={setBlouseMaterial}
                       options={MATERIALS}
                       allowCustom
                     />
-                    <Select
+                    <Select multiple
                       label='Saree Weight'
                       value={sareeWeight}
                       onChange={setSareeWeight}
                       options={SAREE_WEIGHTS}
                       allowCustom
                     />
-                    <Select
+                    <Select multiple
                       label='Saree Border'
                       value={sareeBorder}
                       onChange={setSareeBorder}
@@ -1473,28 +1483,28 @@ const ProductUpload = () => {
                       allowCustom
                     />
                     <ColorPlate label='Blouse Color' value={blouseColor} onChange={setBlouseColor} />
-                    <Select
+                    <Select multiple
                       label='Blouse Pattern'
                       value={blousePattern}
                       onChange={setBlousePattern}
                       options={PATTERNS}
                       allowCustom
                     />
-                    <Select
+                    <Select multiple
                       label='Blouse Border'
                       value={blouseBorder}
                       onChange={setBlouseBorder}
                       options={BORDER_TYPES}
                       allowCustom
                     />
-                    <Select
+                    <Select multiple
                       label='Blouse Size'
                       value={blouseSize}
                       onChange={setBlouseSize}
                       options={SIZE_LIST}
                       allowCustom
                     />
-                    <Select
+                    <Select multiple
                       label='Occasion'
                       value={occasion}
                       onChange={setOccasion}
@@ -1508,71 +1518,71 @@ const ProductUpload = () => {
                       <div className='space-y-5 sm:pr-5'>
                         <h4 className='text-xs font-bold text-stone-400 uppercase tracking-wide'>Top</h4>
                         <ColorPlate label='Colour' value={dmTopColor} onChange={setDmTopColor} />
-                        <Select label='Material' value={dmTopMaterial} onChange={setDmTopMaterial} options={MATERIALS} allowCustom />
-                        <Select label='Pattern' value={dmTopPattern} onChange={setDmTopPattern} options={PATTERNS} allowCustom />
-                        <Select label='Design' value={dmTopDesign} onChange={setDmTopDesign} options={DESIGNS} allowCustom />
-                        <Select label='Size' value={dmTopSize} onChange={setDmTopSize} options={SIZE_LIST} allowCustom />
+                        <Select multiple label='Material' value={dmTopMaterial} onChange={setDmTopMaterial} options={MATERIALS} allowCustom />
+                        <Select multiple label='Pattern' value={dmTopPattern} onChange={setDmTopPattern} options={PATTERNS} allowCustom />
+                        <Select multiple label='Design' value={dmTopDesign} onChange={setDmTopDesign} options={DESIGNS} allowCustom />
+                        <Select multiple label='Size' value={dmTopSize} onChange={setDmTopSize} options={SIZE_LIST} allowCustom />
                       </div>
                       <div className='space-y-5 pt-5 sm:pt-0 sm:px-5'>
                         <h4 className='text-xs font-bold text-stone-400 uppercase tracking-wide'>Bottom</h4>
                         <ColorPlate label='Colour' value={dmBottomColor} onChange={setDmBottomColor} />
-                        <Select label='Material' value={dmBottomMaterial} onChange={setDmBottomMaterial} options={MATERIALS} allowCustom />
-                        <Select label='Pattern' value={dmBottomPattern} onChange={setDmBottomPattern} options={PATTERNS} allowCustom />
-                        <Select label='Design' value={dmBottomDesign} onChange={setDmBottomDesign} options={DESIGNS} allowCustom />
-                        <Select label='Size' value={dmBottomSize} onChange={setDmBottomSize} options={SIZE_LIST} allowCustom />
+                        <Select multiple label='Material' value={dmBottomMaterial} onChange={setDmBottomMaterial} options={MATERIALS} allowCustom />
+                        <Select multiple label='Pattern' value={dmBottomPattern} onChange={setDmBottomPattern} options={PATTERNS} allowCustom />
+                        <Select multiple label='Design' value={dmBottomDesign} onChange={setDmBottomDesign} options={DESIGNS} allowCustom />
+                        <Select multiple label='Size' value={dmBottomSize} onChange={setDmBottomSize} options={SIZE_LIST} allowCustom />
                       </div>
                       <div className='space-y-5 pt-5 sm:pt-0 sm:pl-5'>
                         <h4 className='text-xs font-bold text-stone-400 uppercase tracking-wide'>Shawl</h4>
                         <ColorPlate label='Colour' value={dmShawlColor} onChange={setDmShawlColor} />
-                        <Select label='Material' value={dmShawlMaterial} onChange={setDmShawlMaterial} options={MATERIALS} allowCustom />
-                        <Select label='Pattern' value={dmShawlPattern} onChange={setDmShawlPattern} options={PATTERNS} allowCustom />
-                        <Select label='Design' value={dmShawlDesign} onChange={setDmShawlDesign} options={DESIGNS} allowCustom />
-                        <Select label='Size' value={dmShawlSize} onChange={setDmShawlSize} options={DUPATTA_SIZES} allowCustom />
+                        <Select multiple label='Material' value={dmShawlMaterial} onChange={setDmShawlMaterial} options={MATERIALS} allowCustom />
+                        <Select multiple label='Pattern' value={dmShawlPattern} onChange={setDmShawlPattern} options={PATTERNS} allowCustom />
+                        <Select multiple label='Design' value={dmShawlDesign} onChange={setDmShawlDesign} options={DESIGNS} allowCustom />
+                        <Select multiple label='Size' value={dmShawlSize} onChange={setDmShawlSize} options={DUPATTA_SIZES} allowCustom />
                       </div>
                     </div>
                     <div className='grid grid-cols-1 sm:grid-cols-2 gap-5'>
                       {/* ponytail: dress-material is always unstitched fabric — same field as suit-set's Product Type, locked to Unstitched/Semi-Stitched */}
-                      <Select label='Type' value={dmStitchType} onChange={setDmStitchType} options={STITCH_TYPES} />
-                      <Select label='Weight' value={dmWeight} onChange={setDmWeight} options={WEIGHTS} />
-                      <Select label='Top Length' value={topLength} onChange={setTopLength} options={TOP_LENGTHS} allowCustom />
-                      <Select label='Sleeve Length' value={sleeveLength} onChange={setSleeveLength} options={SLEEVE_LENGTH_OPTIONS} />
-                      <Select label='Bottom Type' value={bottomType} onChange={setBottomType} options={BOTTOM_TYPES} allowCustom />
-                      <Select label='Dupatta Size' value={dmDupattaSize} onChange={setDmDupattaSize} options={DUPATTA_SIZES} allowCustom />
-                      <Select label='Pack Of' value={dmPackSize} onChange={setDmPackSize} options={PACK_SIZES} />
-                      <Select label='Neck Design' value={neck} onChange={setNeck} options={NECK_OPTIONS} />
-                      <Select label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
+                      <Select multiple label='Type' value={dmStitchType} onChange={setDmStitchType} options={STITCH_TYPES} />
+                      <Select multiple label='Weight' value={dmWeight} onChange={setDmWeight} options={WEIGHTS} />
+                      <Select multiple label='Top Length' value={topLength} onChange={setTopLength} options={TOP_LENGTHS} allowCustom />
+                      <Select multiple label='Sleeve Length' value={sleeveLength} onChange={setSleeveLength} options={SLEEVE_LENGTH_OPTIONS} />
+                      <Select multiple label='Bottom Type' value={bottomType} onChange={setBottomType} options={BOTTOM_TYPES} allowCustom />
+                      <Select multiple label='Dupatta Size' value={dmDupattaSize} onChange={setDmDupattaSize} options={DUPATTA_SIZES} allowCustom />
+                      <Select multiple label='Pack Of' value={dmPackSize} onChange={setDmPackSize} options={PACK_SIZES} />
+                      <Select multiple label='Neck Design' value={neck} onChange={setNeck} options={NECK_OPTIONS} />
+                      <Select multiple label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
                     </div>
                   </div>
                 ) : isLegging ? (
                   <div className='grid grid-cols-1 sm:grid-cols-2 gap-5'>
-                    <Select
+                    <Select multiple
                       label='Material'
                       value={material}
                       onChange={setMaterial}
                       options={MATERIALS}
                       allowCustom
                     />
-                    <Select
+                    <Select multiple
                       label='Length Type'
                       value={legLength}
                       onChange={setLegLength}
                       options={LENGTH_TYPES}
                     />
                     <ColorPlate label='Colour' value={legColour} onChange={setLegColour} />
-                    <Select
+                    <Select multiple
                       label='Design Pattern'
                       value={design}
                       onChange={setDesign}
                       options={DESIGNS}
                       allowCustom
                     />
-                    <Select
+                    <Select multiple
                       label='Weight'
                       value={legWeight}
                       onChange={setLegWeight}
                       options={WEIGHTS}
                     />
-                    <Select
+                    <Select multiple
                       label='Occasion'
                       value={occasion}
                       onChange={setOccasion}
@@ -1582,27 +1592,27 @@ const ProductUpload = () => {
                   </div>
                 ) : isKurtisTops ? (
                   <div className='grid grid-cols-1 sm:grid-cols-2 gap-5'>
-                    <Select label='Material' value={material} onChange={setMaterial} options={MATERIALS} allowCustom />
-                    <Select label='Sleeve Length' value={sleeveLength} onChange={setSleeveLength} options={SLEEVE_LENGTH_OPTIONS} />
-                    <Select label='Neck' value={neck} onChange={setNeck} options={NECK_OPTIONS} />
-                    <Select
+                    <Select multiple label='Material' value={material} onChange={setMaterial} options={MATERIALS} allowCustom />
+                    <Select multiple label='Sleeve Length' value={sleeveLength} onChange={setSleeveLength} options={SLEEVE_LENGTH_OPTIONS} />
+                    <Select multiple label='Neck' value={neck} onChange={setNeck} options={NECK_OPTIONS} />
+                    <Select multiple
                       label='Design Styling'
                       value={designStyling}
                       onChange={setDesignStyling}
                       options={['Regular', 'Straight', 'A-Line', 'Flared', 'Anarkali', 'Asymmetric', 'Layered', 'Panelled']}
                     />
-                    <Select label='Design' value={design} onChange={setDesign} options={DESIGNS} allowCustom />
-                    <Select label='Top Length' value={topLength} onChange={setTopLength} options={TOP_LENGTHS} allowCustom />
+                    <Select multiple label='Design' value={design} onChange={setDesign} options={DESIGNS} allowCustom />
+                    <Select multiple label='Top Length' value={topLength} onChange={setTopLength} options={TOP_LENGTHS} allowCustom />
                   </div>
                 ) : isShawlCategory ? (
                   <div className='grid grid-cols-1 sm:grid-cols-2 gap-5'>
-                    <Select label='Material' value={material} onChange={setMaterial} options={MATERIALS} allowCustom />
+                    <Select multiple label='Material' value={material} onChange={setMaterial} options={MATERIALS} allowCustom />
                     <ColorPlate label='Colour' value={shawlColor} onChange={setShawlColor} />
-                    <Select label='Design' value={design} onChange={setDesign} options={DESIGNS} allowCustom />
-                    <Select label='Pattern' value={pattern} onChange={setPattern} options={PATTERNS} allowCustom />
-                    <Select label='Size' value={shawlSize} onChange={setShawlSize} options={DUPATTA_SIZES} allowCustom />
-                    <Select label='Weight' value={shawlWeight} onChange={setShawlWeight} options={WEIGHTS} />
-                    <Select label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
+                    <Select multiple label='Design' value={design} onChange={setDesign} options={DESIGNS} allowCustom />
+                    <Select multiple label='Pattern' value={pattern} onChange={setPattern} options={PATTERNS} allowCustom />
+                    <Select multiple label='Size' value={shawlSize} onChange={setShawlSize} options={DUPATTA_SIZES} allowCustom />
+                    <Select multiple label='Weight' value={shawlWeight} onChange={setShawlWeight} options={WEIGHTS} />
+                    <Select multiple label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
                   </div>
                 ) : isSuitSet3pc ? (
                   <div className='space-y-5'>
@@ -1610,33 +1620,33 @@ const ProductUpload = () => {
                       <div className='space-y-5 sm:pr-5'>
                         <h4 className='text-xs font-bold text-stone-400 uppercase tracking-wide'>Top</h4>
                         <ColorPlate label='Colour' value={ssTopColor} onChange={setSsTopColor} />
-                        <Select label='Material' value={ssTopMaterial} onChange={setSsTopMaterial} options={MATERIALS} allowCustom />
-                        <Select label='Pattern' value={ssTopPattern} onChange={setSsTopPattern} options={PATTERNS} allowCustom />
+                        <Select multiple label='Material' value={ssTopMaterial} onChange={setSsTopMaterial} options={MATERIALS} allowCustom />
+                        <Select multiple label='Pattern' value={ssTopPattern} onChange={setSsTopPattern} options={PATTERNS} allowCustom />
                       </div>
                       <div className='space-y-5 pt-5 sm:pt-0 sm:px-5'>
                         <h4 className='text-xs font-bold text-stone-400 uppercase tracking-wide'>Bottom</h4>
                         <ColorPlate label='Colour' value={ssBottomColor} onChange={setSsBottomColor} />
-                        <Select label='Material' value={ssBottomMaterial} onChange={setSsBottomMaterial} options={MATERIALS} allowCustom />
-                        <Select label='Pattern' value={ssBottomPattern} onChange={setSsBottomPattern} options={PATTERNS} allowCustom />
+                        <Select multiple label='Material' value={ssBottomMaterial} onChange={setSsBottomMaterial} options={MATERIALS} allowCustom />
+                        <Select multiple label='Pattern' value={ssBottomPattern} onChange={setSsBottomPattern} options={PATTERNS} allowCustom />
                       </div>
                       <div className='space-y-5 pt-5 sm:pt-0 sm:pl-5'>
                         <h4 className='text-xs font-bold text-stone-400 uppercase tracking-wide'>Shawl</h4>
                         <ColorPlate label='Colour' value={ssShawlColor} onChange={setSsShawlColor} />
-                        <Select label='Material' value={ssShawlMaterial} onChange={setSsShawlMaterial} options={MATERIALS} allowCustom />
-                        <Select label='Pattern' value={ssShawlPattern} onChange={setSsShawlPattern} options={PATTERNS} allowCustom />
+                        <Select multiple label='Material' value={ssShawlMaterial} onChange={setSsShawlMaterial} options={MATERIALS} allowCustom />
+                        <Select multiple label='Pattern' value={ssShawlPattern} onChange={setSsShawlPattern} options={PATTERNS} allowCustom />
                       </div>
                     </div>
                     <div className='grid grid-cols-1 sm:grid-cols-2 gap-5'>
-                      <Select label='Kurti Type' value={ssKurtiType} onChange={setSsKurtiType} options={KURTI_TYPES} allowCustom />
-                      <Select label='Product Type' value={ssProductType} onChange={setSsProductType} options={PRODUCT_TYPES} allowCustom />
-                      <Select label='Weight' value={ssWeight} onChange={setSsWeight} options={WEIGHTS} allowCustom />
-                      <Select label='Top Length' value={topLength} onChange={setTopLength} options={TOP_LENGTHS} allowCustom />
-                      <Select label='Sleeve Length' value={sleeveLength} onChange={setSleeveLength} options={SLEEVE_LENGTH_OPTIONS} allowCustom />
-                      <Select label='Bottom Type' value={bottomType} onChange={setBottomType} options={BOTTOM_TYPES} allowCustom />
-                      <Select label='Dupatta Size' value={ssDupattaSize} onChange={setSsDupattaSize} options={DUPATTA_SIZES} allowCustom />
-                      <Select label='Pack Of' value={ssPackSize} onChange={setSsPackSize} options={PACK_SIZES} allowCustom />
-                      <Select label='Neck Design' value={neck} onChange={setNeck} options={NECK_OPTIONS} allowCustom />
-                      <Select label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
+                      <Select multiple label='Kurti Type' value={ssKurtiType} onChange={setSsKurtiType} options={KURTI_TYPES} allowCustom />
+                      <Select multiple label='Product Type' value={ssProductType} onChange={setSsProductType} options={PRODUCT_TYPES} allowCustom />
+                      <Select multiple label='Weight' value={ssWeight} onChange={setSsWeight} options={WEIGHTS} allowCustom />
+                      <Select multiple label='Top Length' value={topLength} onChange={setTopLength} options={TOP_LENGTHS} allowCustom />
+                      <Select multiple label='Sleeve Length' value={sleeveLength} onChange={setSleeveLength} options={SLEEVE_LENGTH_OPTIONS} allowCustom />
+                      <Select multiple label='Bottom Type' value={bottomType} onChange={setBottomType} options={BOTTOM_TYPES} allowCustom />
+                      <Select multiple label='Dupatta Size' value={ssDupattaSize} onChange={setSsDupattaSize} options={DUPATTA_SIZES} allowCustom />
+                      <Select multiple label='Pack Of' value={ssPackSize} onChange={setSsPackSize} options={PACK_SIZES} allowCustom />
+                      <Select multiple label='Neck Design' value={neck} onChange={setNeck} options={NECK_OPTIONS} allowCustom />
+                      <Select multiple label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
                     </div>
                   </div>
                 ) : isSuitSetTopDupatta ? (
@@ -1645,27 +1655,27 @@ const ProductUpload = () => {
                       <div className='sm:pr-5 space-y-5'>
                         <p className='text-xs font-semibold uppercase tracking-widest text-stone-500'>Top</p>
                         <ColorPlate label='Colour' value={ssTopColor} onChange={setSsTopColor} />
-                        <Select label='Material' value={ssTopMaterial} onChange={setSsTopMaterial} options={MATERIALS} allowCustom />
-                        <Select label='Pattern' value={ssTopPattern} onChange={setSsTopPattern} options={PATTERNS} allowCustom />
-                        <Select label='Design' value={ssTopDesign} onChange={setSsTopDesign} options={DESIGNS} allowCustom />
+                        <Select multiple label='Material' value={ssTopMaterial} onChange={setSsTopMaterial} options={MATERIALS} allowCustom />
+                        <Select multiple label='Pattern' value={ssTopPattern} onChange={setSsTopPattern} options={PATTERNS} allowCustom />
+                        <Select multiple label='Design' value={ssTopDesign} onChange={setSsTopDesign} options={DESIGNS} allowCustom />
                       </div>
                       <div className='sm:pl-5 space-y-5'>
                         <p className='text-xs font-semibold uppercase tracking-widest text-stone-500'>Dupatta</p>
                         <ColorPlate label='Colour' value={ssShawlColor} onChange={setSsShawlColor} />
-                        <Select label='Material' value={ssShawlMaterial} onChange={setSsShawlMaterial} options={MATERIALS} allowCustom />
-                        <Select label='Pattern' value={ssShawlPattern} onChange={setSsShawlPattern} options={PATTERNS} allowCustom />
-                        <Select label='Design' value={ssShawlDesign} onChange={setSsShawlDesign} options={DESIGNS} allowCustom />
+                        <Select multiple label='Material' value={ssShawlMaterial} onChange={setSsShawlMaterial} options={MATERIALS} allowCustom />
+                        <Select multiple label='Pattern' value={ssShawlPattern} onChange={setSsShawlPattern} options={PATTERNS} allowCustom />
+                        <Select multiple label='Design' value={ssShawlDesign} onChange={setSsShawlDesign} options={DESIGNS} allowCustom />
                       </div>
                     </div>
                     <div className='grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5'>
-                      <Select label='Product Type' value={ssProductType} onChange={setSsProductType} options={PRODUCT_TYPES} />
-                      <Select label='Weight' value={ssWeight} onChange={setSsWeight} options={WEIGHTS} />
-                      <Select label='Top Length' value={topLength} onChange={setTopLength} options={TOP_LENGTHS} allowCustom />
-                      <Select label='Sleeve Length' value={sleeveLength} onChange={setSleeveLength} options={SLEEVE_LENGTH_OPTIONS} />
-                      <Select label='Dupatta Size' value={ssDupattaSize} onChange={setSsDupattaSize} options={DUPATTA_SIZES} allowCustom />
-                      <Select label='Pack Of' value={ssPackSize} onChange={setSsPackSize} options={PACK_SIZES} />
-                      <Select label='Neck Design' value={neck} onChange={setNeck} options={NECK_OPTIONS} />
-                      <Select label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
+                      <Select multiple label='Product Type' value={ssProductType} onChange={setSsProductType} options={PRODUCT_TYPES} />
+                      <Select multiple label='Weight' value={ssWeight} onChange={setSsWeight} options={WEIGHTS} />
+                      <Select multiple label='Top Length' value={topLength} onChange={setTopLength} options={TOP_LENGTHS} allowCustom />
+                      <Select multiple label='Sleeve Length' value={sleeveLength} onChange={setSleeveLength} options={SLEEVE_LENGTH_OPTIONS} />
+                      <Select multiple label='Dupatta Size' value={ssDupattaSize} onChange={setSsDupattaSize} options={DUPATTA_SIZES} allowCustom />
+                      <Select multiple label='Pack Of' value={ssPackSize} onChange={setSsPackSize} options={PACK_SIZES} />
+                      <Select multiple label='Neck Design' value={neck} onChange={setNeck} options={NECK_OPTIONS} />
+                      <Select multiple label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
                     </div>
                   </div>
                 ) : isSuitSetTopKurti ? (
@@ -1674,101 +1684,101 @@ const ProductUpload = () => {
                       <div className='sm:pr-5 space-y-5'>
                         <p className='text-xs font-semibold uppercase tracking-widest text-stone-500'>Top</p>
                         <ColorPlate label='Colour' value={ssTopColor} onChange={setSsTopColor} />
-                        <Select label='Material' value={ssTopMaterial} onChange={setSsTopMaterial} options={MATERIALS} allowCustom />
-                        <Select label='Pattern' value={ssTopPattern} onChange={setSsTopPattern} options={PATTERNS} allowCustom />
-                        <Select label='Design' value={ssTopDesign} onChange={setSsTopDesign} options={DESIGNS} allowCustom />
+                        <Select multiple label='Material' value={ssTopMaterial} onChange={setSsTopMaterial} options={MATERIALS} allowCustom />
+                        <Select multiple label='Pattern' value={ssTopPattern} onChange={setSsTopPattern} options={PATTERNS} allowCustom />
+                        <Select multiple label='Design' value={ssTopDesign} onChange={setSsTopDesign} options={DESIGNS} allowCustom />
                       </div>
                       <div className='sm:pl-5 space-y-5'>
                         <p className='text-xs font-semibold uppercase tracking-widest text-stone-500'>Kurti</p>
                         <ColorPlate label='Colour' value={ssKurtiColor} onChange={setSsKurtiColor} />
-                        <Select label='Material' value={ssKurtiMaterial} onChange={setSsKurtiMaterial} options={MATERIALS} allowCustom />
-                        <Select label='Pattern' value={ssKurtiPattern} onChange={setSsKurtiPattern} options={PATTERNS} allowCustom />
-                        <Select label='Design' value={ssKurtiDesign} onChange={setSsKurtiDesign} options={DESIGNS} allowCustom />
+                        <Select multiple label='Material' value={ssKurtiMaterial} onChange={setSsKurtiMaterial} options={MATERIALS} allowCustom />
+                        <Select multiple label='Pattern' value={ssKurtiPattern} onChange={setSsKurtiPattern} options={PATTERNS} allowCustom />
+                        <Select multiple label='Design' value={ssKurtiDesign} onChange={setSsKurtiDesign} options={DESIGNS} allowCustom />
                       </div>
                     </div>
                     <div className='grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5'>
-                      <Select label='Product Type' value={ssProductType} onChange={setSsProductType} options={PRODUCT_TYPES} />
-                      <Select label='Weight' value={ssWeight} onChange={setSsWeight} options={WEIGHTS} />
-                      <Select label='Top Length' value={topLength} onChange={setTopLength} options={TOP_LENGTHS} allowCustom />
-                      <Select label='Sleeve Length' value={sleeveLength} onChange={setSleeveLength} options={SLEEVE_LENGTH_OPTIONS} />
-                      <Select label='Pack Of' value={ssPackSize} onChange={setSsPackSize} options={PACK_SIZES} />
-                      <Select label='Neck Design' value={neck} onChange={setNeck} options={NECK_OPTIONS} />
-                      <Select label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
+                      <Select multiple label='Product Type' value={ssProductType} onChange={setSsProductType} options={PRODUCT_TYPES} />
+                      <Select multiple label='Weight' value={ssWeight} onChange={setSsWeight} options={WEIGHTS} />
+                      <Select multiple label='Top Length' value={topLength} onChange={setTopLength} options={TOP_LENGTHS} allowCustom />
+                      <Select multiple label='Sleeve Length' value={sleeveLength} onChange={setSleeveLength} options={SLEEVE_LENGTH_OPTIONS} />
+                      <Select multiple label='Pack Of' value={ssPackSize} onChange={setSsPackSize} options={PACK_SIZES} />
+                      <Select multiple label='Neck Design' value={neck} onChange={setNeck} options={NECK_OPTIONS} />
+                      <Select multiple label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
                     </div>
                   </div>
                 ) : isDresses ? (
                   <div className='grid grid-cols-1 sm:grid-cols-2 gap-5'>
-                    <Select label='Material' value={material} onChange={setMaterial} options={MATERIALS} allowCustom />
-                    <Select label='Sleeve Length' value={sleeveLength} onChange={setSleeveLength} options={SLEEVE_LENGTH_OPTIONS} />
-                    <Select label='Neck' value={neck} onChange={setNeck} options={NECK_OPTIONS} />
-                    <Select
+                    <Select multiple label='Material' value={material} onChange={setMaterial} options={MATERIALS} allowCustom />
+                    <Select multiple label='Sleeve Length' value={sleeveLength} onChange={setSleeveLength} options={SLEEVE_LENGTH_OPTIONS} />
+                    <Select multiple label='Neck' value={neck} onChange={setNeck} options={NECK_OPTIONS} />
+                    <Select multiple
                       label='Design Styling'
                       value={designStyling}
                       onChange={setDesignStyling}
                       options={['Regular', 'Straight', 'A-Line', 'Flared', 'Anarkali', 'Asymmetric', 'Layered', 'Panelled']}
                     />
-                    <Select label='Design' value={design} onChange={setDesign} options={DESIGNS} allowCustom />
+                    <Select multiple label='Design' value={design} onChange={setDesign} options={DESIGNS} allowCustom />
                     <ColorPlate label='Colour' value={dressColour} onChange={setDressColour} />
-                    <Select label='Top Length' value={topLength} onChange={setTopLength} options={TOP_LENGTHS} allowCustom />
-                    <Select label='Weight' value={dressWeight} onChange={setDressWeight} options={WEIGHTS} />
-                    <Select label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
+                    <Select multiple label='Top Length' value={topLength} onChange={setTopLength} options={TOP_LENGTHS} allowCustom />
+                    <Select multiple label='Weight' value={dressWeight} onChange={setDressWeight} options={WEIGHTS} />
+                    <Select multiple label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
                   </div>
                 ) : isTunics ? (
                   <div className='grid grid-cols-1 sm:grid-cols-2 gap-5'>
-                    <Select label='Material' value={material} onChange={setMaterial} options={MATERIALS} allowCustom />
-                    <Select label='Sleeve Length' value={sleeveLength} onChange={setSleeveLength} options={SLEEVE_LENGTH_OPTIONS} />
-                    <Select label='Neck' value={neck} onChange={setNeck} options={NECK_OPTIONS} />
-                    <Select
+                    <Select multiple label='Material' value={material} onChange={setMaterial} options={MATERIALS} allowCustom />
+                    <Select multiple label='Sleeve Length' value={sleeveLength} onChange={setSleeveLength} options={SLEEVE_LENGTH_OPTIONS} />
+                    <Select multiple label='Neck' value={neck} onChange={setNeck} options={NECK_OPTIONS} />
+                    <Select multiple
                       label='Design Styling'
                       value={designStyling}
                       onChange={setDesignStyling}
                       options={['Regular', 'Straight', 'A-Line', 'Flared', 'Anarkali', 'Asymmetric', 'Layered', 'Panelled']}
                     />
-                    <Select label='Design' value={design} onChange={setDesign} options={DESIGNS} allowCustom />
+                    <Select multiple label='Design' value={design} onChange={setDesign} options={DESIGNS} allowCustom />
                     <ColorPlate label='Colour' value={tunicColour} onChange={setTunicColour} />
-                    <Select label='Weight' value={tunicWeight} onChange={setTunicWeight} options={WEIGHTS} />
-                    <Select label='Top Type' value={tunicTopType} onChange={setTunicTopType} options={TOP_TYPES} allowCustom />
-                    <Select label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
+                    <Select multiple label='Weight' value={tunicWeight} onChange={setTunicWeight} options={WEIGHTS} />
+                    <Select multiple label='Top Type' value={tunicTopType} onChange={setTunicTopType} options={TOP_TYPES} allowCustom />
+                    <Select multiple label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
                   </div>
                 ) : isStraightPants ? (
                   <div className='grid grid-cols-1 sm:grid-cols-2 gap-5'>
-                    <Select label='Material' value={material} onChange={setMaterial} options={MATERIALS} allowCustom />
-                    <Select label='Sleeve Length' value={sleeveLength} onChange={setSleeveLength} options={SLEEVE_LENGTH_OPTIONS} />
-                    <Select label='Neck' value={neck} onChange={setNeck} options={NECK_OPTIONS} />
-                    <Select
+                    <Select multiple label='Material' value={material} onChange={setMaterial} options={MATERIALS} allowCustom />
+                    <Select multiple label='Sleeve Length' value={sleeveLength} onChange={setSleeveLength} options={SLEEVE_LENGTH_OPTIONS} />
+                    <Select multiple label='Neck' value={neck} onChange={setNeck} options={NECK_OPTIONS} />
+                    <Select multiple
                       label='Design Styling'
                       value={designStyling}
                       onChange={setDesignStyling}
                       options={['Regular', 'Straight', 'A-Line', 'Flared', 'Anarkali', 'Asymmetric', 'Layered', 'Panelled']}
                     />
-                    <Select label='Design' value={design} onChange={setDesign} options={DESIGNS} allowCustom />
-                    <Select label='Bottom Type' value={bottomType} onChange={setBottomType} options={BOTTOM_TYPES} allowCustom />
+                    <Select multiple label='Design' value={design} onChange={setDesign} options={DESIGNS} allowCustom />
+                    <Select multiple label='Bottom Type' value={bottomType} onChange={setBottomType} options={BOTTOM_TYPES} allowCustom />
                     <ColorPlate label='Colour' value={pantsColour} onChange={setPantsColour} />
-                    <Select label='Weight' value={pantsWeight} onChange={setPantsWeight} options={WEIGHTS} />
-                    <Select label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
+                    <Select multiple label='Weight' value={pantsWeight} onChange={setPantsWeight} options={WEIGHTS} />
+                    <Select multiple label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
                   </div>
                 ) : (
                   <div className='grid grid-cols-1 sm:grid-cols-2 gap-5'>
-                    <Select
+                    <Select multiple
                       label='Material'
                       value={material}
                       onChange={setMaterial}
                       options={MATERIALS}
                       allowCustom
                     />
-                    <Select
+                    <Select multiple
                       label='Sleeve Length'
                       value={sleeveLength}
                       onChange={setSleeveLength}
                       options={SLEEVE_LENGTH_OPTIONS}
                     />
-                    <Select
+                    <Select multiple
                       label='Neck'
                       value={neck}
                       onChange={setNeck}
                       options={NECK_OPTIONS}
                     />
-                    <Select
+                    <Select multiple
                       label='Design Styling'
                       value={designStyling}
                       onChange={setDesignStyling}
@@ -1783,21 +1793,21 @@ const ProductUpload = () => {
                         'Panelled',
                       ]}
                     />
-                    <Select
+                    <Select multiple
                       label='Design'
                       value={design}
                       onChange={setDesign}
                       options={DESIGNS}
                       allowCustom
                     />
-                    <Select
+                    <Select multiple
                       label='Bottom Type'
                       value={bottomType}
                       onChange={setBottomType}
                       options={BOTTOM_TYPES}
                       allowCustom
                     />
-                    <Select
+                    <Select multiple
                       label='Occasion'
                       value={occasion}
                       onChange={setOccasion}
@@ -2086,6 +2096,7 @@ const ProductUpload = () => {
                     ? [ssTopMaterial, ssKurtiMaterial, ssProductType, topLength]
                     : [material, sleeveLength, neck, designStyling, design, bottomType]
                   )
+                    .map((v) => (Array.isArray(v) ? v.join(', ') : v))
                     .filter(Boolean)
                     .join(' · ') ||
                     'Add description attributes to improve search visibility…'}

@@ -718,13 +718,16 @@ const SortDropdown = ({ sortBy, setSortBy }) => {
                 setSortBy(option.value)
                 setSortOpen(false)
               }}
-              style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '13px' }}
+              style={{
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontSize: '13px',
+                ...(sortBy === option.value ? { background: '#fdf6e3', color: '#C9A84C' } : {}),
+              }}
               className={`w-full text-left px-3 py-1 text-xs transition ${
                 sortBy === option.value
                   ? 'font-medium'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
-              style={sortBy === option.value ? { background: '#fdf6e3', color: '#C9A84C' } : {}}
             >
               {option.label}
             </button>
