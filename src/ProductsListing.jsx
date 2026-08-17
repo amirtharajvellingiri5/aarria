@@ -219,6 +219,10 @@ const fetchProductsByCategory = async (
   }))
 }
 
+// Splits comma-joined multi-value fields (e.g. fabric "Polyester, Cotton") into separate values
+const splitCsvValues = (values) =>
+  [...new Set(values.flatMap((v) => (v || '').split(',').map((p) => p.trim()).filter(Boolean)))]
+
 // ── Filter Section (standalone — must be outside FilterSidebar to avoid remount) ─
 const FilterSection = ({
   title, items, filterKey,
@@ -276,9 +280,7 @@ const FilterSection = ({
           : filterKey === 'color'
           ? (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {[...new Set(
-                  items.flatMap((item) => (item || '').split(',').map((p) => p.trim()).filter(Boolean))
-                )].map((item) => {
+                {splitCsvValues(items).map((item) => {
                   const hex = COLOR_MAP[item.toLowerCase()] || null
                   const isSelected = selectedFilters[filterKey]?.includes(item) || false
                   return (
@@ -312,7 +314,7 @@ const FilterSection = ({
             )
           : (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                {items.map((item) => {
+                {(filterKey === 'fabric' ? splitCsvValues(items) : items).map((item) => {
                   const isSelected = selectedFilters[filterKey]?.includes(item) || false
                   return (
                     <button
@@ -381,12 +383,14 @@ const FilterSidebar = ({
         selectedFilters={selectedFilters} onFilterChange={onFilterChange}
         currentSlug={currentSlug}
       />
-      <FilterSection
-        title='Size' items={filters.sizes} filterKey='size'
-        expanded={expandedSections.size} onToggle={toggleSection}
-        selectedFilters={selectedFilters} onFilterChange={onFilterChange}
-        currentSlug={currentSlug}
-      />
+      {currentSlug !== 'sarees' && (
+        <FilterSection
+          title='Size' items={filters.sizes} filterKey='size'
+          expanded={expandedSections.size} onToggle={toggleSection}
+          selectedFilters={selectedFilters} onFilterChange={onFilterChange}
+          currentSlug={currentSlug}
+        />
+      )}
 
       {/* Price */}
       <div className='border-b border-[#C9A84C]/20 py-2'>
@@ -718,13 +722,16 @@ const SortDropdown = ({ sortBy, setSortBy }) => {
                 setSortBy(option.value)
                 setSortOpen(false)
               }}
-              style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '13px' }}
+              style={{
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontSize: '13px',
+                ...(sortBy === option.value ? { background: '#fdf6e3', color: '#C9A84C' } : {}),
+              }}
               className={`w-full text-left px-3 py-1 text-xs transition ${
                 sortBy === option.value
                   ? 'font-medium'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
-              style={sortBy === option.value ? { background: '#fdf6e3', color: '#C9A84C' } : {}}
             >
               {option.label}
             </button>
