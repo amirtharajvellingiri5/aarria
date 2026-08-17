@@ -268,6 +268,7 @@ async function fetchProduct(productId) {
     coupon,
     couponDiscount: discountMeta?.value ?? 0,
     discountType: discountMeta?.discount_type ?? null,
+    hasDiscount: Boolean(discountMeta?.value > 0),
     brand: raw.brand.name,
     brandId: raw.brand.catalogue_id,
     category: raw.category.category_name,
@@ -1767,8 +1768,12 @@ export default function ProductDetail() {
               <span className='pdp-price'>
                 ₹{product.price.toLocaleString()}
               </span>
-              <span className='pdp-mrp'>₹{product.mrp.toLocaleString()}</span>
-              <span className='pdp-discount'>({product.discount}% OFF)</span>
+              {product.hasDiscount && (
+                <>
+                  <span className='pdp-mrp'>₹{product.mrp.toLocaleString()}</span>
+                  <span className='pdp-discount'>({product.discount}% OFF)</span>
+                </>
+              )}
             </div>
             <div className='pdp-tax'>inclusive of all taxes</div>
 
@@ -1790,7 +1795,7 @@ export default function ProductDetail() {
 
             {/* ── Savings + trust badges ── */}
             <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-              {product.mrp > product.price && (
+              {product.hasDiscount && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#FFF7ED', border: '1px solid #fdba74', borderRadius: 20, padding: '4px 12px', fontSize: 12, color: '#9a3412', fontWeight: 600 }}>
                   💰 You save{' '}
                   <span style={{ fontWeight: 700 }}>
