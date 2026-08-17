@@ -383,12 +383,14 @@ const FilterSidebar = ({
         selectedFilters={selectedFilters} onFilterChange={onFilterChange}
         currentSlug={currentSlug}
       />
-      <FilterSection
-        title='Size' items={filters.sizes} filterKey='size'
-        expanded={expandedSections.size} onToggle={toggleSection}
-        selectedFilters={selectedFilters} onFilterChange={onFilterChange}
-        currentSlug={currentSlug}
-      />
+      {currentSlug !== 'sarees' && (
+        <FilterSection
+          title='Size' items={filters.sizes} filterKey='size'
+          expanded={expandedSections.size} onToggle={toggleSection}
+          selectedFilters={selectedFilters} onFilterChange={onFilterChange}
+          currentSlug={currentSlug}
+        />
+      )}
 
       {/* Price */}
       <div className='border-b border-[#C9A84C]/20 py-2'>
