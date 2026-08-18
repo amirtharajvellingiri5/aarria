@@ -1123,6 +1123,13 @@ export default function ProductDetail() {
     ratingsData.reviews?.length > 0
   const isOutOfStock =
     !product?.sizes?.length || !product?.availableSizes?.length
+  // "You save" = the additional (coupon) discount off the selling price shown above, not MRP - price.
+  const additionalSavings =
+    product?.discountType === 'FLAT'
+      ? product.couponDiscount
+      : product?.discountType === 'PERCENTAGE'
+      ? Math.round((product.price * product.couponDiscount) / 100)
+      : 0
 
   // Sarees don't show a size selector; single-size products don't need one either —
   // auto-select so Add to Bag isn't blocked on a choice the user never gets to make.
@@ -1799,7 +1806,7 @@ export default function ProductDetail() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#FFF7ED', border: '1px solid #fdba74', borderRadius: 20, padding: '4px 12px', fontSize: 12, color: '#9a3412', fontWeight: 600 }}>
                   💰 You save{' '}
                   <span style={{ fontWeight: 700 }}>
-                    ₹{(product.mrp - product.price).toLocaleString()}
+                    ₹{additionalSavings.toLocaleString()}
                   </span>
                   {' '}on this order
                 </div>
