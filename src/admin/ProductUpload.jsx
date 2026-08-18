@@ -515,6 +515,7 @@ const ProductUpload = () => {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [isFeatured, setIsFeatured] = useState(false)
+  const [publishedOnce, setPublishedOnce] = useState(false)
 
   const calculateFinalPrice = () => {
     const base = parseFloat(salePrice) || 0
@@ -1019,6 +1020,10 @@ const ProductUpload = () => {
       return
     }
 
+    if (publishedOnce && !window.confirm('Are you sure? Saving again will create a new product.')) {
+      return
+    }
+
     setSubmitting(true)
     setSubmitError('')
 
@@ -1071,6 +1076,7 @@ const ProductUpload = () => {
 
       setStatus('Published')
       setSaved(true)
+      setPublishedOnce(true)
     } catch (err) {
       // ❗ DO NOT RESET DATA
       setSubmitError(err.message)
