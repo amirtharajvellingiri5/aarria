@@ -37,7 +37,6 @@ import {
   SAREE_WEIGHTS,
 } from '../constants/sareeAttributes'
 import {
-  STITCH_TYPES,
   PACK_SIZES,
   WEIGHTS,
   LENGTH_TYPES,
@@ -438,7 +437,7 @@ const ProductUpload = () => {
   const [dmBottomPattern, setDmBottomPattern] = useState(['Solid'])
   const [dmBottomDesign, setDmBottomDesign] = useState(['Floral'])
   const [dmBottomSize, setDmBottomSize] = useState(['M'])
-  const [dmStitchType, setDmStitchType] = useState(['Unstitched'])
+  const [dmStitchType] = useState(['Unstitched'])
   const [dmWeight, setDmWeight] = useState(['Light (<500g)'])
   const [dmDupattaSize, setDmDupattaSize] = useState(['2.25 m'])
   const [dmPackSize, setDmPackSize] = useState(['1'])
@@ -840,11 +839,8 @@ const ProductUpload = () => {
           Type: dmStitchType,
           Weight: dmWeight,
           'Top Length': topLength,
-          'Sleeve Length': sleeveLength,
-          'Bottom Type': bottomType,
           'Dupatta Size': dmDupattaSize,
           'Pack Of': dmPackSize,
-          'Neck Design': neck,
           Occasion: occasion,
           product_blurb: description,
         }
@@ -1547,15 +1543,11 @@ const ProductUpload = () => {
                       </div>
                     </div>
                     <div className='grid grid-cols-1 sm:grid-cols-2 gap-5'>
-                      {/* ponytail: dress-material is always unstitched fabric — same field as suit-set's Product Type, locked to Unstitched/Semi-Stitched */}
-                      <Select multiple label='Type' value={dmStitchType} onChange={setDmStitchType} options={STITCH_TYPES} />
+                      {/* ponytail: dress-material is always unstitched fabric, dmStitchType stays at its ['Unstitched'] default — no dropdown */}
                       <Select multiple label='Weight' value={dmWeight} onChange={setDmWeight} options={WEIGHTS} />
                       <Select multiple label='Top Length' value={topLength} onChange={setTopLength} options={TOP_LENGTHS} allowCustom />
-                      <Select multiple label='Sleeve Length' value={sleeveLength} onChange={setSleeveLength} options={SLEEVE_LENGTH_OPTIONS} />
-                      <Select multiple label='Bottom Type' value={bottomType} onChange={setBottomType} options={BOTTOM_TYPES} allowCustom />
                       <Select multiple label='Dupatta Size' value={dmDupattaSize} onChange={setDmDupattaSize} options={DUPATTA_SIZES} allowCustom />
                       <Select multiple label='Pack Of' value={dmPackSize} onChange={setDmPackSize} options={PACK_SIZES} />
-                      <Select multiple label='Neck Design' value={neck} onChange={setNeck} options={NECK_OPTIONS} />
                       <Select multiple label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
                     </div>
                   </div>

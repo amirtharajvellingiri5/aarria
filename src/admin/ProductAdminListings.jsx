@@ -338,6 +338,15 @@ const ProductListings = () => {
       if (!res.ok) throw new Error(`Error ${res.status}`)
       const full = await res.json()
 
+      // ponytail: dress-material dropped Sleeve Length/Bottom Type/Neck Design and locked Type to
+      // Unstitched — strip stale values from old products so cloning them doesn't resurrect the fields
+      const rawDescription = full.description?.description || full.description || {}
+      const { 'Sleeve Length': _sl, 'Bottom Type': _bt, 'Neck Design': _nd, ...descRest } = rawDescription
+      const description =
+        full.category?.category_name === 'Dress Materials'
+          ? { ...descRest, Type: ['Unstitched'] }
+          : rawDescription
+
       const payload = {
         title: `${full.title} (Copy)`,
         brand: {
@@ -348,7 +357,7 @@ const ProductListings = () => {
           category_name: full.category?.category_name || '',
           category_id: full.category?.category_id,
         },
-        description: full.description?.description || full.description || {},
+        description,
         pricing: {
           mrp: full.pricing?.mrp || 0,
           sale_price: full.pricing?.sale_price || 0,

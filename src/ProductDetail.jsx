@@ -28,6 +28,7 @@ import { useWishlistStore } from './store/wishlistStore'
 import WishlistLoginModal from './modals/WishlistLoginModal'
 import { ORDERS_URL, CATALOG_URL } from './config'
 import { authFetch } from './utils/authFetch'
+import { ADMIN_CATEGORIES } from './utils/categories'
 
 // ─── Mock API Response ────────────────────────────────────────────────────────
 const MOCK_PRODUCT_API_RESPONSE = {
@@ -1691,7 +1692,10 @@ export default function ProductDetail() {
 
           <span
             style={{ cursor: 'pointer' }}
-            onClick={() => navigate('/products')}
+            onClick={() => {
+              const cat = ADMIN_CATEGORIES.find((c) => c.category_id === product.categoryId)
+              navigate(cat ? `/${cat.slug}` : '/products')
+            }}
           >
             {product.category || 'All Products'}
           </span>
