@@ -392,7 +392,8 @@ const ProductListings = () => {
 
       setToast('Product cloned')
       await fetchListings()
-    } catch {
+    } catch (err) {
+      console.error('Clone failed:', err)
       setToast('Clone failed. Please try again.')
     } finally {
       setCloningId(null)

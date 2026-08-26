@@ -304,33 +304,38 @@ const toList = (...vals) => {
 const mapApiToState = (product) => {
   const categorySlug = categories.find((c) => c.category_id === product.category?.category_id)?.slug
 
-  const variants = (product.inventory?.variants || []).map((v) => ({
-    id: uid(),
-    colors: (v.color || 'Red').split(',').map((c) => c.trim()).filter(Boolean),
-    sizes: ALL_SIZES.map((s) => {
-      // sizes may be a flat array (standard/saree) or a per-component object (legacy multi-part)
-      const list = Array.isArray(v.sizes) ? v.sizes : []
-      const found = list.find((sz) => sz.size === s)
-      return { size: s, quantity: found ? String(found.quantity) : '' }
-    }),
-    componentSizes: { shawl: emptySizes(), top: emptySizes(), bottom: emptySizes(), kurti: emptySizes() },
-    // Existing server images shown as preview URLs
-    main_image_preview: v.main_image
-      ? { id: uid(), src: `https://cdn.vaarria.com/app/images/${v.main_image}`, name: v.main_image }
-      : null,
-    other_image_previews: (v.other_images || []).map((key) => ({
+  const variants = (product.inventory?.variants || []).map((v) => {
+    // Same id must be shared between the preview and filename entries below —
+    // removeOtherImage() matches on id across both arrays to delete an image.
+    const otherImages = (v.other_images || []).map((key) => ({ id: uid(), key }))
+    return {
       id: uid(),
-      src: `https://cdn.vaarria.com/app/images/${key}`,
-      name: key,
-    })),
-    // Keep server filenames so unchanged images don't get re-uploaded
-    main_image_filename: v.main_image || '',
-    other_image_filenames: (v.other_images || []).map((key) => ({ id: uid(), filename: key })),
-    // Files are null — only set when the user picks a NEW file
-    main_image_file: null,
-    other_image_files: [],
-    product_id: product.product_id,
-  }))
+      colors: (v.color || 'Red').split(',').map((c) => c.trim()).filter(Boolean),
+      sizes: ALL_SIZES.map((s) => {
+        // sizes may be a flat array (standard/saree) or a per-component object (legacy multi-part)
+        const list = Array.isArray(v.sizes) ? v.sizes : []
+        const found = list.find((sz) => sz.size === s)
+        return { size: s, quantity: found ? String(found.quantity) : '' }
+      }),
+      componentSizes: { shawl: emptySizes(), top: emptySizes(), bottom: emptySizes(), kurti: emptySizes() },
+      // Existing server images shown as preview URLs
+      main_image_preview: v.main_image
+        ? { id: uid(), src: `https://cdn.vaarria.com/app/images/${v.main_image}`, name: v.main_image }
+        : null,
+      other_image_previews: otherImages.map(({ id, key }) => ({
+        id,
+        src: `https://cdn.vaarria.com/app/images/${key}`,
+        name: key,
+      })),
+      // Keep server filenames so unchanged images don't get re-uploaded
+      main_image_filename: v.main_image || '',
+      other_image_filenames: otherImages.map(({ id, key }) => ({ id, filename: key })),
+      // Files are null — only set when the user picks a NEW file
+      main_image_file: null,
+      other_image_files: [],
+      product_id: product.product_id,
+    }
+  })
 
   const desc = product.description?.description || product.description || {}
 

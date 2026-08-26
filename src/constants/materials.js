@@ -24,7 +24,7 @@ export const MATERIALS = [
   'Lycra',
   'Rayon Blend',
   'Silk Blend',
-  'Polycrape',
+  'Polycrepe',
   'Crape',
   'Poly Silk Cotton',
   'Poly Shiffon',
