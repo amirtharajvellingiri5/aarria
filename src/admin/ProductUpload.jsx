@@ -76,7 +76,15 @@ const Select = ({ label, options, value, onChange, required, allowCustom, multip
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
-  const filteredOptions = options.filter(
+  // custom values typed in via "Add ..." live only in `value`, not `options` —
+  // merge them back in so they show up (checked) and can be toggled off again
+  const customValues = Array.isArray(value)
+    ? value.filter((v) => !options.some((o) => o.toLowerCase() === v.toLowerCase()))
+    : []
+
+  // custom values first: a freshly-added value should be immediately
+  // visible/tappable, not buried after dozens of base options
+  const filteredOptions = [...customValues, ...options].filter(
     (o) =>
       typeof o === 'string' && o.toLowerCase().includes(search.toLowerCase()),
   )
