@@ -367,6 +367,8 @@ const ProductListings = () => {
             discount_type: full.pricing?.discounts?.discount_type || 'FLAT',
             value: full.pricing?.discounts?.value || 0,
           },
+          min_auction_rate: full.pricing?.min_auction_rate || 0,
+          max_auction_rate: full.pricing?.max_auction_rate || 0,
         },
         inventory: {
           variants: (full.inventory?.variants || []).map((v) => ({

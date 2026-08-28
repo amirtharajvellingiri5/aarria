@@ -18,6 +18,7 @@ import {
   CreditCard,
   RotateCcw,
   Wallet,
+  Timer,
 } from 'lucide-react'
 import Navbar from './Navbar'
 import Footer from './Footer'
@@ -138,6 +139,55 @@ function extractYoutubeId(url) {
     /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/,
   )
   return match ? match[1] : null
+}
+
+// ─── Hourly deal price ──────────────────────────────────────────────────────
+// Deterministic "random" price within [min_auction_rate, max_auction_rate],
+// seeded off (productId, current IST hour). Same product shows the same deal
+// to every visitor within that hour, then rotates on the next hour boundary —
+// recurring urgency without a per-reload price flicker that would look broken.
+const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000
+const HOUR_MS = 60 * 60 * 1000
+
+function hashSeed(str) {
+  let h = 2166136261
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return h >>> 0
+}
+
+function mulberry32(seed) {
+  let a = seed
+  return function () {
+    a |= 0
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+// Returns null when the product has no (valid) auction range — legacy
+// products fall back to the existing TRENDY-coupon behaviour untouched.
+function getHourlyDeal(productId, minRate, maxRate, now = Date.now()) {
+  const min = Number(minRate)
+  const max = Number(maxRate)
+  if (!productId || !(min > 0) || !(max > min)) return null
+  const istNow = now + IST_OFFSET_MS
+  const bucket = Math.floor(istNow / HOUR_MS)
+  const rand = mulberry32(hashSeed(`${productId}-${bucket}`))()
+  const price = Math.round(min + rand * (max - min))
+  const msRemaining = HOUR_MS - (istNow % HOUR_MS)
+  return { price, msRemaining }
+}
+
+function formatCountdown(ms) {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000))
+  const m = Math.floor(totalSeconds / 60)
+  const s = totalSeconds % 60
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
 
 // ─── API Functions ────────────────────────────────────────────────────────────
@@ -278,6 +328,8 @@ async function fetchProduct(productId) {
     mediaItems,
     price: raw.pricing.sale_price,
     mrp: raw.pricing.mrp,
+    minAuctionRate: raw.pricing?.min_auction_rate ?? null,
+    maxAuctionRate: raw.pricing?.max_auction_rate ?? null,
     discount,
     rating: raw.ratings.average_rating,
     ratingCount: raw.ratings.rating_count ?? raw.ratings.review_count ?? 0,
@@ -1132,6 +1184,18 @@ export default function ProductDetail() {
       ? Math.round((product.price * product.couponDiscount) / 100)
       : 0
 
+  // Ticks every second so the countdown visibly moves and the deal price
+  // rotates itself at the top of each IST hour — no drift, recomputed fresh.
+  const [dealTick, setDealTick] = useState(() => Date.now())
+  useEffect(() => {
+    const timer = setInterval(() => setDealTick(Date.now()), 1000)
+    return () => clearInterval(timer)
+  }, [])
+  const deal = product
+    ? getHourlyDeal(product.id, product.minAuctionRate, product.maxAuctionRate, dealTick)
+    : null
+  const dealSavings = deal ? Math.max(0, Math.round(product.price - deal.price)) : 0
+
   // Sarees don't show a size selector; single-size products don't need one either —
   // auto-select so Add to Bag isn't blocked on a choice the user never gets to make.
   useEffect(() => {
@@ -1788,8 +1852,25 @@ export default function ProductDetail() {
             </div>
             <div className='pdp-tax'>inclusive of all taxes</div>
 
-            {/* ── Coupon-applied price preview ── */}
-            {product.coupon && (
+            {/* ── Coupon-applied / hourly-deal price preview ── */}
+            {deal ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, background: '#F0FAF4', border: '1px dashed #10b981', borderRadius: 10, padding: '8px 12px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 18, fontWeight: 800, color: '#065f46' }}>
+                  ₹{deal.price.toLocaleString()}
+                </span>
+                <span style={{ fontSize: 12, color: '#047857', fontWeight: 600 }}>
+                  with code{' '}
+                  <span style={{ background: '#10b981', color: '#fff', borderRadius: 6, padding: '1px 8px', fontWeight: 700, letterSpacing: '0.04em' }}>
+                    TRENDY10
+                  </span>{' '}
+                  at checkout
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto', fontSize: 12, color: '#b91c1c', fontWeight: 700, background: '#FEF2F2', border: '1px solid #fecaca', borderRadius: 6, padding: '2px 8px' }}>
+                  <Timer size={13} />
+                  {formatCountdown(deal.msRemaining)}
+                </span>
+              </div>
+            ) : product.coupon && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, background: '#F0FAF4', border: '1px dashed #10b981', borderRadius: 10, padding: '8px 12px', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 18, fontWeight: 800, color: '#065f46' }}>
                   ₹{product.coupon.effectivePrice.toLocaleString()}
@@ -1806,11 +1887,11 @@ export default function ProductDetail() {
 
             {/* ── Savings + trust badges ── */}
             <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-              {product.hasDiscount && (
+              {(deal ? dealSavings > 0 : product.hasDiscount) && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#FFF7ED', border: '1px solid #fdba74', borderRadius: 20, padding: '4px 12px', fontSize: 12, color: '#9a3412', fontWeight: 600 }}>
                   💰 You save{' '}
                   <span style={{ fontWeight: 700 }}>
-                    ₹{additionalSavings.toLocaleString()}
+                    ₹{(deal ? dealSavings : additionalSavings).toLocaleString()}
                   </span>
                   {' '}on this order
                 </div>
