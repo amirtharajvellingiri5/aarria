@@ -494,6 +494,8 @@ const ProductUpload = () => {
   const [ssWeight, setSsWeight] = useState(['Light (<500g)'])
   const [ssDupattaSize, setSsDupattaSize] = useState(['2.25 m'])
   const [ssPackSize, setSsPackSize] = useState(['1'])
+  // 2-piece sets only: which piece pairs with Top — reuses ssBottom*/bottomType or ssShawl*/ssDupattaSize below
+  const [secondPieceType, setSecondPieceType] = useState('Dupatta')
 
   // Description & product info
   const [description, setDescription] = useState(
@@ -722,7 +724,7 @@ const ProductUpload = () => {
       : isDressMaterial
       ? [dmTopColor, dmBottomColor, dmShawlColor].filter(Boolean).join(', ')
       : isSuitSetTopDupatta
-      ? [ssTopColor, ssShawlColor].filter(Boolean).join(', ')
+      ? [ssTopColor, secondPieceType === 'Bottom' ? ssBottomColor : ssShawlColor].filter(Boolean).join(', ')
       : isSuitSetTopKurti
       ? [ssTopColor, ssKurtiColor].filter(Boolean).join(', ')
       : isSaree
@@ -797,7 +799,7 @@ const ProductUpload = () => {
       : isSuitSet3pc
       ? firstFabric(ssTopMaterial, ssBottomMaterial, ssShawlMaterial)
       : isSuitSetTopDupatta
-      ? firstFabric(ssTopMaterial, ssShawlMaterial)
+      ? firstFabric(ssTopMaterial, secondPieceType === 'Bottom' ? ssBottomMaterial : ssShawlMaterial)
       : isSuitSetTopKurti
       ? firstFabric(ssTopMaterial, ssKurtiMaterial)
       : firstFabric(material),
@@ -914,15 +916,25 @@ const ProductUpload = () => {
           'Top Pattern': ssTopPattern,
           'Top Design': ssTopDesign,
           'Top Colour': ssTopColor,
-          'Shawl Material': ssShawlMaterial,
-          'Shawl Pattern': ssShawlPattern,
-          'Shawl Design': ssShawlDesign,
-          'Shawl Colour': ssShawlColor,
+          ...(secondPieceType === 'Bottom'
+            ? {
+                'Bottom Material': ssBottomMaterial,
+                'Bottom Pattern': ssBottomPattern,
+                'Bottom Colour': ssBottomColor,
+              }
+            : {
+                'Shawl Material': ssShawlMaterial,
+                'Shawl Pattern': ssShawlPattern,
+                'Shawl Design': ssShawlDesign,
+                'Shawl Colour': ssShawlColor,
+              }),
           'Product Type': ssProductType,
           Weight: ssWeight,
           'Top Length': topLength,
           'Sleeve Length': sleeveLength,
-          'Dupatta Size': ssDupattaSize,
+          ...(secondPieceType === 'Bottom'
+            ? { 'Bottom Type': bottomType }
+            : { 'Dupatta Size': ssDupattaSize }),
           'Pack Of': ssPackSize,
           'Neck Design': neck,
           Occasion: occasion,
@@ -1669,7 +1681,13 @@ const ProductUpload = () => {
                     </div>
                   </div>
                 ) : isSuitSetTopDupatta ? (
-                  <div>
+                  <div className='space-y-5'>
+                    <Select
+                      label='Second Piece'
+                      value={secondPieceType}
+                      onChange={setSecondPieceType}
+                      options={['Dupatta', 'Bottom']}
+                    />
                     <div className='grid grid-cols-1 sm:grid-cols-2 sm:divide-x divide-stone-800 gap-5 sm:gap-0'>
                       <div className='sm:pr-5 space-y-5'>
                         <p className='text-xs font-semibold uppercase tracking-widest text-stone-500'>Top</p>
@@ -1678,20 +1696,33 @@ const ProductUpload = () => {
                         <Select multiple label='Pattern' value={ssTopPattern} onChange={setSsTopPattern} options={PATTERNS} allowCustom />
                         <Select multiple label='Design' value={ssTopDesign} onChange={setSsTopDesign} options={DESIGNS} allowCustom />
                       </div>
-                      <div className='sm:pl-5 space-y-5'>
-                        <p className='text-xs font-semibold uppercase tracking-widest text-stone-500'>Dupatta</p>
-                        <ColorPlate label='Colour' value={ssShawlColor} onChange={setSsShawlColor} />
-                        <Select multiple label='Material' value={ssShawlMaterial} onChange={setSsShawlMaterial} options={MATERIALS} allowCustom />
-                        <Select multiple label='Pattern' value={ssShawlPattern} onChange={setSsShawlPattern} options={PATTERNS} allowCustom />
-                        <Select multiple label='Design' value={ssShawlDesign} onChange={setSsShawlDesign} options={DESIGNS} allowCustom />
-                      </div>
+                      {secondPieceType === 'Bottom' ? (
+                        <div className='sm:pl-5 space-y-5'>
+                          <p className='text-xs font-semibold uppercase tracking-widest text-stone-500'>Bottom</p>
+                          <ColorPlate label='Colour' value={ssBottomColor} onChange={setSsBottomColor} />
+                          <Select multiple label='Material' value={ssBottomMaterial} onChange={setSsBottomMaterial} options={MATERIALS} allowCustom />
+                          <Select multiple label='Pattern' value={ssBottomPattern} onChange={setSsBottomPattern} options={PATTERNS} allowCustom />
+                        </div>
+                      ) : (
+                        <div className='sm:pl-5 space-y-5'>
+                          <p className='text-xs font-semibold uppercase tracking-widest text-stone-500'>Dupatta</p>
+                          <ColorPlate label='Colour' value={ssShawlColor} onChange={setSsShawlColor} />
+                          <Select multiple label='Material' value={ssShawlMaterial} onChange={setSsShawlMaterial} options={MATERIALS} allowCustom />
+                          <Select multiple label='Pattern' value={ssShawlPattern} onChange={setSsShawlPattern} options={PATTERNS} allowCustom />
+                          <Select multiple label='Design' value={ssShawlDesign} onChange={setSsShawlDesign} options={DESIGNS} allowCustom />
+                        </div>
+                      )}
                     </div>
-                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5'>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-5'>
                       <Select multiple label='Product Type' value={ssProductType} onChange={setSsProductType} options={PRODUCT_TYPES} />
                       <Select multiple label='Weight' value={ssWeight} onChange={setSsWeight} options={WEIGHTS} />
                       <Select multiple label='Top Length' value={topLength} onChange={setTopLength} options={TOP_LENGTHS} allowCustom />
                       <Select multiple label='Sleeve Length' value={sleeveLength} onChange={setSleeveLength} options={SLEEVE_LENGTH_OPTIONS} />
-                      <Select multiple label='Dupatta Size' value={ssDupattaSize} onChange={setSsDupattaSize} options={DUPATTA_SIZES} allowCustom />
+                      {secondPieceType === 'Bottom' ? (
+                        <Select multiple label='Bottom Type' value={bottomType} onChange={setBottomType} options={BOTTOM_TYPES} allowCustom />
+                      ) : (
+                        <Select multiple label='Dupatta Size' value={ssDupattaSize} onChange={setSsDupattaSize} options={DUPATTA_SIZES} allowCustom />
+                      )}
                       <Select multiple label='Pack Of' value={ssPackSize} onChange={setSsPackSize} options={PACK_SIZES} />
                       <Select multiple label='Neck Design' value={neck} onChange={setNeck} options={NECK_OPTIONS} />
                       <Select multiple label='Occasion' value={occasion} onChange={setOccasion} options={OCCASIONS} allowCustom />
@@ -2130,7 +2161,7 @@ const ProductUpload = () => {
                     : isSuitSet3pc
                     ? [ssTopMaterial, ssBottomMaterial, ssShawlMaterial, ssProductType, topLength]
                     : isSuitSetTopDupatta
-                    ? [ssTopMaterial, ssShawlMaterial, ssProductType, topLength]
+                    ? [ssTopMaterial, secondPieceType === 'Bottom' ? ssBottomMaterial : ssShawlMaterial, ssProductType, topLength]
                     : isSuitSetTopKurti
                     ? [ssTopMaterial, ssKurtiMaterial, ssProductType, topLength]
                     : [material, sleeveLength, neck, designStyling, design, bottomType]
