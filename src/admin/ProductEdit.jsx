@@ -447,6 +447,8 @@ const mapApiToState = (product) => {
     gst: String(product.pricing?.gst || ''),
     discountType: product.pricing?.discounts?.discount_type || 'FLAT',
     discountValue: String(product.pricing?.discounts?.value || ''),
+    minAuctionRate: String(product.pricing?.min_auction_rate || ''),
+    maxAuctionRate: String(product.pricing?.max_auction_rate || ''),
     variants: variants.length > 0 ? variants : [emptyVariant()],
     product_id: product.product_id,
   }
@@ -497,6 +499,8 @@ const ProductEdit = ({ onBack }) => {
   const [gst, setGst] = useState('')
   const [discountType, setDiscountType] = useState('FLAT')
   const [discountValue, setDiscountValue] = useState('')
+  const [minAuctionRate, setMinAuctionRate] = useState('')
+  const [maxAuctionRate, setMaxAuctionRate] = useState('')
   const [variants, setVariants] = useState([emptyVariant()])
   const [isFeatured, setIsFeatured] = useState(false)
   const [videoUrl1, setVideoUrl1] = useState('')
@@ -724,6 +728,8 @@ const ProductEdit = ({ onBack }) => {
       setGst(mapped.gst)
       setDiscountType(mapped.discountType)
       setDiscountValue(mapped.discountValue)
+      setMinAuctionRate(mapped.minAuctionRate)
+      setMaxAuctionRate(mapped.maxAuctionRate)
       setVariants(mapped.variants)
 
       // Preserve ratings from API so we don't overwrite them
@@ -1019,6 +1025,8 @@ const ProductEdit = ({ onBack }) => {
         buy_price: parseFloat(buyPrice) || 0,
         gst: parseFloat(gst) || 0,
         discounts: { discount_type: discountType, value: parseFloat(discountValue) || 0 },
+        min_auction_rate: parseFloat(minAuctionRate) || 0,
+        max_auction_rate: parseFloat(maxAuctionRate) || 0,
       },
       inventory: { variants: buildInventoryVariants(updatedVariants) },
       ratings: originalRatings, // preserve existing ratings
@@ -1028,6 +1036,15 @@ const ProductEdit = ({ onBack }) => {
 
   // ── Update (PUT) ───────────────────────────────────────────────────────────
   const handleUpdate = async () => {
+    if (!minAuctionRate || !maxAuctionRate) {
+      alert('Please enter both Min Auction Rate and Max Auction Rate before saving.')
+      return
+    }
+    if (parseFloat(minAuctionRate) >= parseFloat(maxAuctionRate)) {
+      alert('Min Auction Rate must be less than Max Auction Rate.')
+      return
+    }
+
     setSubmitting(true)
     setSubmitError('')
     try {
@@ -1591,6 +1608,14 @@ const ProductEdit = ({ onBack }) => {
                   <div className='grid grid-cols-1 sm:grid-cols-2 gap-5 mt-4'>
                     <Select label='Discount Type' value={discountType} onChange={setDiscountType} options={['FLAT', 'PERCENTAGE']} />
                     <Field label='Discount Value'><Input value={discountValue} onChange={setDiscountValue} type='number' placeholder='Enter value' /></Field>
+                  </div>
+                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-5 mt-4'>
+                    <Field label='Min Auction Rate' required hint='Lower bound of the flash-deal price shown on PDP'>
+                      <Input value={minAuctionRate} onChange={setMinAuctionRate} type='number' placeholder='0.00' prefix='₹' />
+                    </Field>
+                    <Field label='Max Auction Rate' required hint='Upper bound of the flash-deal price shown on PDP'>
+                      <Input value={maxAuctionRate} onChange={setMaxAuctionRate} type='number' placeholder='0.00' prefix='₹' />
+                    </Field>
                   </div>
                 </div>
 

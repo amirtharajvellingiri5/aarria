@@ -507,6 +507,8 @@ const ProductUpload = () => {
   const [gst, setGst] = useState('5')
   const [discountType, setDiscountType] = useState('PERCENTAGE')
   const [discountValue, setDiscountValue] = useState('')
+  const [minAuctionRate, setMinAuctionRate] = useState('')
+  const [maxAuctionRate, setMaxAuctionRate] = useState('')
 
   // Product videos (YouTube/direct URLs) — shown on PDP only when set
   const [videoUrl1, setVideoUrl1] = useState('')
@@ -1006,6 +1008,8 @@ const ProductUpload = () => {
         discount_type: discountType,
         value: parseFloat(discountValue) || 0,
       },
+      min_auction_rate: parseFloat(minAuctionRate) || 0,
+      max_auction_rate: parseFloat(maxAuctionRate) || 0,
     },
 
     inventory: {
@@ -1021,6 +1025,15 @@ const ProductUpload = () => {
   const handlePublish = async () => {
     if (!categories.some((c) => c.category_id === categoryId)) {
       alert('Please select a category before publishing.')
+      return
+    }
+
+    if (!minAuctionRate || !maxAuctionRate) {
+      alert('Please enter both Min Auction Rate and Max Auction Rate before publishing.')
+      return
+    }
+    if (parseFloat(minAuctionRate) >= parseFloat(maxAuctionRate)) {
+      alert('Min Auction Rate must be less than Max Auction Rate.')
       return
     }
 
@@ -1894,6 +1907,26 @@ const ProductUpload = () => {
                         onChange={setDiscountValue}
                         type='number'
                         placeholder='Enter value'
+                      />
+                    </Field>
+                  </div>
+                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-5 mt-4'>
+                    <Field label='Min Auction Rate' required hint='Lower bound of the flash-deal price shown on PDP'>
+                      <Input
+                        value={minAuctionRate}
+                        onChange={setMinAuctionRate}
+                        type='number'
+                        placeholder='0.00'
+                        prefix='₹'
+                      />
+                    </Field>
+                    <Field label='Max Auction Rate' required hint='Upper bound of the flash-deal price shown on PDP'>
+                      <Input
+                        value={maxAuctionRate}
+                        onChange={setMaxAuctionRate}
+                        type='number'
+                        placeholder='0.00'
+                        prefix='₹'
                       />
                     </Field>
                   </div>
