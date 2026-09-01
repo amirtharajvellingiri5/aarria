@@ -320,8 +320,6 @@ async function fetchProduct(productId) {
     couponDiscount: discountMeta?.value ?? 0,
     discountType: discountMeta?.discount_type ?? null,
     hasDiscount: Boolean(discountMeta?.value > 0),
-    brand: raw.brand.name,
-    brandId: raw.brand.catalogue_id,
     category: raw.category.category_name,
     categoryId: raw.category.category_id,
     name: raw.title,
@@ -1364,8 +1362,8 @@ export default function ProductDetail() {
           qty: 1,
           price: product.price || 0,
           mrp: product.mrp || 0,
-          couponDiscount: product.couponDiscount || 0,
-          discountType: product.discountType || null,
+          couponDiscount: deal ? dealSavings : product.couponDiscount || 0,
+          discountType: deal ? 'FLAT' : product.discountType || null,
           returnDays: product.return_days || 7,
           selected: true,
         }
@@ -1689,7 +1687,6 @@ export default function ProductDetail() {
   background: #fff;
 }
         
-        .pdp-brand-name { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: #1f2937; line-height: 1.2; }
         .pdp-product-subtitle { font-size: 14px; color: #6b7280; margin-top: 5px; line-height: 1.55; font-weight: 400; }
         .pdp-rating-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
         .pdp-rating-pill { display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg, #10b981, #059669); color: #fff; border-radius: 4px; padding: 3px 9px; font-size: 13px; font-weight: 700; }
@@ -1789,7 +1786,6 @@ export default function ProductDetail() {
               }}
             >
               <div style={{ flex: 1, paddingRight: 16 }}>
-                <div className='pdp-brand-name'>{product.brand}</div>
                 <div className='pdp-product-subtitle'>{product.name}</div>
                 {isOutOfStock && (
                   <span
